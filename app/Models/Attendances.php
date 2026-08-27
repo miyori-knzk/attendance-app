@@ -9,6 +9,11 @@ class Attendances extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'user_id',
+        'date',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
