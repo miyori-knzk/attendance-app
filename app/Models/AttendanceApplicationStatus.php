@@ -9,6 +9,11 @@ class AttendanceApplicationStatus extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'attendance_id',
+        'status',
+    ];
+
     public function attendance(): BelongsTo
     {
         return $this->belongsTo(Attendance::class);
