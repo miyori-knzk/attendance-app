@@ -11,15 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('attendance_application_statuses', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->tinyInteger('is_admin')->nullable()->comment('管理者は1を入力');
-            $table->rememberToken();
+            $table->foreignId('attendance_id');
+            $table->tinyInteger('status')->default(1)->comment('1:未承認、2:承認済');
             $table->timestamps();
+            $table->unique('attendance_id');
         });
     }
 
@@ -28,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('attendance_application_statuses');
     }
 };
