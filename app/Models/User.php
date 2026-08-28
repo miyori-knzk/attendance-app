@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -45,13 +46,13 @@ class User extends Authenticatable
 
     public function attendances(): HasMany
     {
-        return $this->hasMany(Attendances::class);
+        return $this->hasMany(Attendance::class);
     }
 
     public function todayAttendance(): HasOne
     {
-        return $this->hasOne(Attendances::class)
-            ->whereDate('date', Carbon::today());
+        return $this->hasOne(Attendance::class)
+            ->whereDate('date', date('Y-m-d'));
     }
 
     public function getAttendanceStatusAttribute(): string
@@ -62,13 +63,15 @@ class User extends Authenticatable
             return '勤務外';
         }
 
-        $latestStatus = $todayAttndance->status()->latest()->first();
+        $clockStatus = $todayAttndance->clockRecord;
+        $breakStatus = $todayAttndance->breakRecords()->orderBy('id', 'desc')->firstOrNew();
 
-        return match ($latestStatus->status) {
-            1 => '勤務中',
-            2 => '休憩中',
-            3 => '退勤済',
-            default => '勤務外',
-        };
+        if ($clockStatus->clock_out) {
+            return '退勤済';
+        } elseif ($breakStatus->break_in && ! $breakStatus->break_out) {
+            return '休憩中';
+        } else {
+            return '出勤中';
+        }
     }
 }

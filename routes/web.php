@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendanceController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,7 +18,13 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// 仮ルート（Chapter 6で本実装に置き換え）
+// 仮ルート
 Route::middleware('auth')->group(function () {
-    Route::get('/attendance', fn () => '準備中');
+    Route::controller(AttendanceController::class)->prefix('attendance')->group(function () {
+        Route::get('/', 'create');
+        Route::post('/', 'store');
+        Route::get('/list', 'index');
+        Route::get('/detail/{attendance}', 'edit');
+        Route::put('/detail/{attendance}', 'update');
+    });
 });

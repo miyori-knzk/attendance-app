@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('attendance_statuses', function (Blueprint $table) {
+        Schema::create('break_records', function (Blueprint $table) {
             $table->id();
             $table->foreignId('attendance_id');
-            $table->tinyInteger('status')->comment('1:出勤中、2:休憩中、3:退勤済');
+            $table->time('break_in');
+            $table->time('break_out')->nullable();
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('attendance_statuses');
+        Schema::dropIfExists('break_records');
     }
 };
