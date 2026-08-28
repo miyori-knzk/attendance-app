@@ -16,3 +16,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+// 仮ルート（Chapter 6で本実装に置き換え）
+Route::middleware('auth')->group(function () {
+    Route::get('/attendance', fn () => '準備中');
+});
