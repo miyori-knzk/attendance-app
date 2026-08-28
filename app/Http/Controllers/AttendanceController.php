@@ -8,12 +8,6 @@ use Illuminate\Support\Facades\DB;
 
 class AttendanceController extends Controller
 {
-    //     Route::get('/', 'create');
-    // Route::post('/', 'store');
-    // Route::get('/list', 'index');
-    // Route::get('/detail/{attendance}', 'edit');
-    // Route::put('/detail/{attendance}', 'update');
-
     public function create()
     {
         $user = auth()->user();
