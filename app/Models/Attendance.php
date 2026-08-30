@@ -28,7 +28,7 @@ class Attendance extends Model
 
     public function clockRecord(): HasOne
     {
-        return $this->hasOne(ClockRecord::class);
+        return $this->hasOne(ClockRecord::class)->withDefault();
     }
 
     public function breakRecords(): HasMany
