@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,6 +16,11 @@ class Attendance extends Model
         'user_id',
         'date',
     ];
+
+    public function getDateAttribute($value)
+    {
+        return CarbonImmutable::parse($value);
+    }
 
     public function user(): BelongsTo
     {
@@ -31,8 +37,8 @@ class Attendance extends Model
         return $this->hasMany(BreakRecord::class);
     }
 
-    public function applicationStatus(): HasOne
+    public function applicationRecord(): HasOne
     {
-        return $this->hasOne(AttendanceApplicationStatus::class);
+        return $this->hasOne(Application::class)->withDefault();
     }
 }

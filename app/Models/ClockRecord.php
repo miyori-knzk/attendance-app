@@ -15,6 +15,26 @@ class ClockRecord extends Model
         'clock_out',
     ];
 
+    public function getClockInAttribute($value)
+    {
+        $default = null;
+        if ($value) {
+            $default = date('H:i', strtotime($value));
+        }
+
+        return $default;
+    }
+
+    public function getClockOutAttribute($value)
+    {
+        $default = null;
+        if ($value) {
+            $default = date('H:i', strtotime($value));
+        }
+
+        return $default;
+    }
+
     public function attendance(): BelongsTo
     {
         return $this->belongsTo(Attendance::class);

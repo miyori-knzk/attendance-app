@@ -64,7 +64,7 @@ class User extends Authenticatable
         }
 
         $clockStatus = $todayAttndance->clockRecord;
-        $breakStatus = $todayAttndance->breakRecords()->orderBy('id', 'desc')->firstOrNew();
+        $breakStatus = $todayAttndance->breakRecords()->orderBy('break_in', 'desc')->firstOrNew();
 
         if ($clockStatus->clock_out) {
             return '退勤済';

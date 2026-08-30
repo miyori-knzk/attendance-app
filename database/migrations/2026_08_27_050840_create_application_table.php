@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('attendance_application_statuses', function (Blueprint $table) {
+        Schema::create('applications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('attendance_id');
             $table->tinyInteger('status')->default(1)->comment('1:未承認、2:承認済');
+            $table->text('comment');
             $table->timestamps();
             $table->unique('attendance_id');
         });
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('attendance_application_statuses');
+        Schema::dropIfExists('applications');
     }
 };

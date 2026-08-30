@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -23,8 +23,8 @@ class AttendanceController extends Controller
         $action = null;
         $actionTbl = 'break';
         $attendance = null;
-        $time = now()->format('H:i');
-        $today = Carbon::today()->format('Y-m-d');
+        $time = date('H:i');
+        $today = date('Y-m-d');
         $chaildTable = null;
         $user = auth()->user();
 
@@ -44,8 +44,7 @@ class AttendanceController extends Controller
         $latestAtt = Attendance::where('user_id', $user->id)->orderBy('date', 'desc')->first();
 
         if ($latestAtt) {
-            $latestAttDay = Carbon::parse($latestAtt->date);
-            $startDay = $latestAttDay->addDay()->copy();
+            $startDay = $latestAtt->date->addDay();
         } else {
             $startDay = $user->created_at;
         }
@@ -68,7 +67,7 @@ class AttendanceController extends Controller
                     if ($action == 'break_in') {
                         $attendance->breakRecords()->create([$action => $time]);
                     } else {
-                        $attendance->breakRecords()->latest()->first()->update([$action => $time]);
+                        $attendance->breakRecords()->orderBy('clock_in', 'desc')->first()->update([$action => $time]);
                     }
                 }
             }
@@ -85,17 +84,17 @@ class AttendanceController extends Controller
         $workSum = 0;
 
         $user = auth()->user();
-        $date = now();
+        $date = CarbonImmutable::parse(date('Y-m-d'));
 
         if ($request->filled('date')) {
-            $date = Carbon::parse($request->date);
+            $date = CarbonImmutable::parse($request->date);
         }
 
-        $previousMonth = $date->copy()->firstOfMonth()->subMonth();
-        $nextMonth = $date->copy()->firstOfMonth()->addMonth();
+        $previousMonth = $date->firstOfMonth()->subMonth();
+        $nextMonth = $date->firstOfMonth()->addMonth();
 
-        $firstOfMonth = $date->copy()->firstOfMonth();
-        $endOfMonth = $date->copy()->endOfMonth();
+        $firstOfMonth = $date->firstOfMonth();
+        $endOfMonth = $date->endOfMonth();
 
         $attendances = Attendance::where('user_id', $user->id)
             ->whereDate('date', '>=', $firstOfMonth)
@@ -105,7 +104,7 @@ class AttendanceController extends Controller
             ->get();
 
         foreach ($attendances as $attendance) {
-            $attDay = Carbon::parse($attendance->date);
+            $attDay = $attendance->date;
             $breakSum = 0;
             $workSum = 0;
 
@@ -113,9 +112,9 @@ class AttendanceController extends Controller
 
             if ($attendance->clockRecord) {
                 $tmpClockIn = $attendance->clockRecord->clock_in ?
-                                 Carbon::parse($attendance->clockRecord->clock_in) : null;
+                                 CarbonImmutable::parse($attendance->clockRecord->clock_in) : null;
                 $tmpClockOut = $attendance->clockRecord->clock_out ?
-                                    Carbon::parse($attendance->clockRecord->clock_out) : null;
+                                    CarbonImmutable::parse($attendance->clockRecord->clock_out) : null;
 
                 if ($tmpClockIn && $tmpClockOut) {
                     $workSum = $tmpClockIn->diffInMinutes($tmpClockOut);
@@ -126,8 +125,8 @@ class AttendanceController extends Controller
                 $breaks = $attendance->breakRecords()->get();
 
                 foreach ($breaks as $break) {
-                    $tmpBreakIn = $break->break_in ? Carbon::parse($break->break_in) : null;
-                    $tmpBreakOut = $break->break_out ? Carbon::parse($break->break_out) : null;
+                    $tmpBreakIn = $break->break_in ? CarbonImmutable::parse($break->break_in) : null;
+                    $tmpBreakOut = $break->break_out ? CarbonImmutable::parse($break->break_out) : null;
                     if ($tmpBreakIn && $tmpBreakOut) {
                         $difMin = $tmpBreakIn->diffInMinutes($tmpBreakOut);
                     } else {
@@ -162,5 +161,23 @@ class AttendanceController extends Controller
         }
 
         return view('user.user-attendance-list', compact('previousMonth', 'date', 'nextMonth', 'formattedAttendanceRecords'));
+    }
+
+    public function edit(Attendance $attendance)
+    {
+        $data = [];
+
+        $data['id'] = $attendance->id;
+        $data['application'] = $attendance->applicationStatus;
+        $user = auth()->user();
+        $spritDate = explode('-', $attendance->date);
+        $data['year'] = $spritDate[0] . '年';
+        $data['date'] = $spritDate[1] . '月' . $spritDate[2] . '日';
+        $data['clock_in'] = $attendance->clockRecord->clock_in;
+        $data['clock_out'] = $attendance->clockRecord->clock_out;
+        $data['breaks'] = $attendance->breakRecords()->get();
+        $data['comment'] = $attendance->applicationRecord->comment;
+
+        return view('user.user-detail', compact('data', 'user'));
     }
 }
