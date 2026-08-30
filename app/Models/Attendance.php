@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,7 +18,7 @@ class Attendance extends Model
 
     public function getDateAttribute($value)
     {
-        return CarbonImmutable::parse($value);
+        return date('Y-m-d', strtotime($value));
     }
 
     public function user(): BelongsTo
