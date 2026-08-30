@@ -15,6 +15,26 @@ class BreakRecord extends Model
         'break_out',
     ];
 
+    public function getBreakInAttribute($value)
+    {
+        $default = null;
+        if ($value) {
+            $default = date('H:i', strtotime($value));
+        }
+
+        return $default;
+    }
+
+    public function getBreakOutAttribute($value)
+    {
+        $default = null;
+        if ($value) {
+            $default = date('H:i', strtotime($value));
+        }
+
+        return $default;
+    }
+
     public function attendance(): BelongsTo
     {
         return $this->belongsTo(Attendance::class);

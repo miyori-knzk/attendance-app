@@ -24,7 +24,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'create');
         Route::post('/', 'store');
         Route::get('/list', 'index');
-        Route::get('/detail/{attendance}', 'edit');
-        Route::put('/detail/{attendance}', 'update');
+        Route::get('/{attendance}', 'edit');
+        Route::put('/{attendance}', 'update');
     });
 });

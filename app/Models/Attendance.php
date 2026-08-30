@@ -16,6 +16,11 @@ class Attendance extends Model
         'date',
     ];
 
+    public function getDateAttribute($value)
+    {
+        return date('Y-m-d', strtotime($value));
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -31,8 +36,8 @@ class Attendance extends Model
         return $this->hasMany(BreakRecord::class);
     }
 
-    public function applicationStatus(): HasOne
+    public function applicationRecord(): HasOne
     {
-        return $this->hasOne(AttendanceApplicationStatus::class);
+        return $this->hasOne(Application::class)->withDefault();
     }
 }
