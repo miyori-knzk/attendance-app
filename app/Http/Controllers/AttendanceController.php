@@ -104,7 +104,7 @@ class AttendanceController extends Controller
             ->get();
 
         foreach ($attendances as $attendance) {
-            $attDay = $attendance->date;
+            $attDay = CarbonImmutable::parse($attendance->date);
             $breakSum = 0;
             $workSum = 0;
 
