@@ -74,4 +74,15 @@ class User extends Authenticatable
             return '出勤中';
         }
     }
+
+    public function isAdmin()
+    {
+        $role = null;
+
+        if (auth()->user()->is_admin === 1) {
+            $role = 'isAdmin';
+        }
+
+        return $role;
+    }
 }
