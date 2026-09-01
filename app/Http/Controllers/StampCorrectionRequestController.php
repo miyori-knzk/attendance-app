@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Application;
-use App\Models\Attendance;
+use App\Models\AttendanceRecord;
 use Illuminate\Http\Request;
 
 class StampCorrectionRequestController extends Controller
@@ -18,7 +18,7 @@ class StampCorrectionRequestController extends Controller
         $view = 'user.user-application-list';
         $user = Auth()->user();
 
-        $query = Attendance::query();
+        $query = AttendanceRecord::query();
         if ($isAdmin) {
             $view = 'admin.admin-application-list';
         } else {

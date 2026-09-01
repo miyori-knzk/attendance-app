@@ -11,9 +11,10 @@ class Application extends Model
     use HasFactory;
 
     protected $fillable = [
-        'attendance_id',
+        'attendance_record_id',
         'status',
         'comment',
+
     ];
 
     public function getapprovalStatusAttribute(): string
@@ -27,7 +28,7 @@ class Application extends Model
 
     public function attendanceRecord(): BelongsTo
     {
-        return $this->belongsTo(Attendance::class, 'attendance_id', 'id');
+        return $this->belongsTo(attendanceRecord::class);
     }
 
     public function getUserAttribute()

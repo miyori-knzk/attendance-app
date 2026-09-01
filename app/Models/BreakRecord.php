@@ -10,7 +10,7 @@ class BreakRecord extends Model
     use HasFactory;
 
     protected $fillable = [
-        'attendance_id',
+        'attendance_record_id',
         'break_in',
         'break_out',
     ];
@@ -37,6 +37,6 @@ class BreakRecord extends Model
 
     public function attendance(): BelongsTo
     {
-        return $this->belongsTo(Attendance::class);
+        return $this->belongsTo(AttendanceRecord::class);
     }
 }
