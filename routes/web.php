@@ -18,13 +18,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// 仮ルート
 Route::middleware('auth')->group(function () {
-    Route::controller(AttendanceController::class)->prefix('attendance')->group(function () {
+    Route::prefix('attendance')->controller(AttendanceController::class)->group(function () {
         Route::get('/', 'create');
         Route::post('/', 'store');
         Route::get('/list', 'index');
         Route::get('/{attendance}', 'edit');
-        Route::put('/{attendance}', 'update');
+        Route::post('/{attendance}', 'update');
     });
 });

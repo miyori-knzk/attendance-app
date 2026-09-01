@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AttendanceUpdateRequest;
+use App\Models\Application;
 use App\Models\Attendance;
+use App\Models\BreakRecord;
+use App\Models\ClockRecord;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -168,7 +172,7 @@ class AttendanceController extends Controller
         $data = [];
 
         $data['id'] = $attendance->id;
-        $data['application'] = $attendance->applicationStatus;
+        $data['application'] = $attendance->applicationIsPending();
         $user = auth()->user();
         $spritDate = explode('-', $attendance->date);
         $data['year'] = $spritDate[0] . '年';
@@ -176,8 +180,66 @@ class AttendanceController extends Controller
         $data['clock_in'] = $attendance->clockRecord->clock_in;
         $data['clock_out'] = $attendance->clockRecord->clock_out;
         $data['breaks'] = $attendance->breakRecords()->get();
-        $data['comment'] = $attendance->applicationRecord->comment;
+        $data['comment'] = $attendance->application->comment;
 
         return view('user.user-detail', compact('data', 'user'));
+    }
+
+    public function update(AttendanceUpdateRequest $request, Attendance $attendance)
+    {
+        $breakArr = [];
+        $validated = $request->validated();
+
+        $formattedKeys = str_replace('new_', '', array_keys($validated));
+        $vals = array_values($validated);
+        foreach ($vals as $val) {
+            $formattedVals[] = hiToTime($val);
+        }
+        $formattedArr = array_combine($formattedKeys, $vals);
+
+        $breakRecords = BreakRecord::where('attendance_id', $attendance->id)->orderBy('break_in', 'asc')->get();
+        foreach ($formattedArr['break_in'] as $key => $inVal) {
+            if ($inVal != null) {
+                $breakArr[] = [
+                    'break_in' => HiToTime($inVal),
+                    'break_out' => HiToTime($formattedArr['break_out'][$key]),
+                ];
+            }
+        }
+
+        $application = Application::firstOrNew(['attendance_id' => $attendance->id]);
+        $application->comment = $formattedArr['comment'];
+
+        DB::connection()->transaction(function () use ($formattedArr, $breakArr, $attendance, $breakRecords, $application) {
+            $clockRecord = ClockRecord::firstOrCreate([
+                'attendance_id' => $attendance->id,
+            ]);
+            $clockRecord->clock_in = $formattedArr['clock_in'];
+            $clockRecord->clock_out = $formattedArr['clock_out'];
+            $clockRecord->save();
+
+            $brrCnt = count($breakArr);
+
+            if ($breakRecords->count() <= $brrCnt) {
+                $cnt = 0;
+                foreach ($breakRecords as $breakRecord) {
+                    $breakRecords->break_in = $breakArr[$cnt]['break_in'];
+                    $breakRecords->break_out = $breakArr[$cnt]['break_in'];
+                    $breakRecord->save();
+                }
+            }
+
+            if ($brrCnt != 0) {
+                BreakRecord::create([
+                    'attendance_id' => $attendance->id,
+                    'break_in' => $breakArr[$brrCnt - 1]['break_in'],
+                    'break_out' => $breakArr[$brrCnt - 1]['break_out'],
+                ]);
+            }
+
+            $application->save();
+        });
+
+        return Redirect('/attendance/' . $attendance->id);
     }
 }
