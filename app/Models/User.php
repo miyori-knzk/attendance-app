@@ -44,14 +44,14 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    public function attendances(): HasMany
+    public function attendanceRecords(): HasMany
     {
-        return $this->hasMany(Attendance::class);
+        return $this->hasMany(AttendanceRecord::class);
     }
 
     public function todayAttendance(): HasOne
     {
-        return $this->hasOne(Attendance::class)
+        return $this->hasOne(AttendanceRecord::class)
             ->whereDate('date', date('Y-m-d'));
     }
 
@@ -63,7 +63,7 @@ class User extends Authenticatable
             return '勤務外';
         }
 
-        $clockStatus = $todayAttndance->clockRecord;
+        $clockStatus = $todayAttndance;
         $breakStatus = $todayAttndance->breakRecords()->orderBy('break_in', 'desc')->firstOrNew();
 
         if ($clockStatus->clock_out) {

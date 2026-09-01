@@ -8,13 +8,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class Attendance extends Model
+class AttendanceRecord extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
         'date',
+        'clock_in',
+        'clock_out',
     ];
 
     public function getDateAttribute($value)
@@ -22,14 +24,29 @@ class Attendance extends Model
         return date('Y-m-d', strtotime($value));
     }
 
+    public function getClockInAttribute($value)
+    {
+        $default = null;
+        if ($value) {
+            $default = date('H:i', strtotime($value));
+        }
+
+        return $default;
+    }
+
+    public function getClockOutAttribute($value)
+    {
+        $default = null;
+        if ($value) {
+            $default = date('H:i', strtotime($value));
+        }
+
+        return $default;
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class)->withDefault();
-    }
-
-    public function clockRecord(): HasOne
-    {
-        return $this->hasOne(ClockRecord::class)->withDefault();
     }
 
     public function breakRecords(): HasMany
