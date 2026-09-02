@@ -47,4 +47,21 @@ class StampCorrectionRequestController extends Controller
 
         return view($view, $data);
     }
+
+    public function show($attendanceCorrectRequestId)
+    {
+        $application = AttendanceCorrectRequest::findOrFail($attendanceCorrectRequestId);
+        $user = $application->getUserAttribute();
+
+        return view('admin.admin-application-detail', compact('application', 'user'));
+    }
+
+    public function update($attendanceCorrectRequestId)
+    {
+        $application = AttendanceCorrectRequest::findOrFail($attendanceCorrectRequestId);
+        $application->status = 2;
+        $application->save();
+
+        return redirect('/stamp_correction_request/approve/' . $attendanceCorrectRequestId);
+    }
 }

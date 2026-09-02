@@ -26,9 +26,29 @@ class AttendanceCorrectRequest extends Model
         };
     }
 
+    public function getProposalBreaksAttribute()
+    {
+        return $this->attendanceRecord->breakRecords;
+    }
+
+    public function getNewDateAttribute()
+    {
+        return dateToCarbon($this->attendanceRecord->date);
+    }
+
+    public function getNewClockInAttribute()
+    {
+        return $this->attendanceRecord->clock_in;
+    }
+
+    public function getNewClockOutAttribute()
+    {
+        return $this->attendanceRecord->clock_out;
+    }
+
     public function attendanceRecord(): BelongsTo
     {
-        return $this->belongsTo(attendanceRecord::class);
+        return $this->belongsTo(AttendanceRecord::class);
     }
 
     public function getUserAttribute()
