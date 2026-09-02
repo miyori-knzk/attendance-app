@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->tinyInteger('is_admin')->nullable()->comment('管理者は1を入力');
+            $table->tinyInteger('admin_status')->nullable()->comment('管理者は1を入力');
             $table->rememberToken();
             $table->timestamps();
         });

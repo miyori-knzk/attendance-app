@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AttendanceUpdateRequest;
-use App\Models\Application;
+use App\Models\AttendanceCorrectRequest;
 use App\Models\AttendanceRecord;
 use App\Models\BreakRecord;
 use Carbon\CarbonImmutable;
@@ -171,7 +171,7 @@ class AttendanceController extends Controller
         $data = [];
 
         $data['id'] = $attendanceRecord->id;
-        $data['application'] = $attendanceRecord->applicationIsPending();
+        $data['application'] = $attendanceRecord->requestIsPending();
         $user = auth()->user();
         $spritDate = explode('-', $attendanceRecord->date);
         $data['year'] = $spritDate[0] . '年';
@@ -179,7 +179,7 @@ class AttendanceController extends Controller
         $data['clock_in'] = $attendanceRecord->clock_in;
         $data['clock_out'] = $attendanceRecord->clock_out;
         $data['breaks'] = $attendanceRecord->breakRecords()->get();
-        $data['comment'] = $attendanceRecord->application->comment;
+        $data['comment'] = $attendanceRecord->attendanceCorrectRequest->comment;
 
         return view('user.user-detail', compact('data', 'user'));
     }
@@ -206,7 +206,7 @@ class AttendanceController extends Controller
             }
         }
 
-        $application = Application::firstOrNew(['attendance_record_id' => $attendanceRecord->id]);
+        $application = AttendanceCorrectRequest::firstOrNew(['attendance_record_id' => $attendanceRecord->id]);
         $application->comment = $formattedArr['comment'];
 
         DB::connection()->transaction(function () use ($formattedArr, $breakArr, $attendanceRecord, $breakRecords, $application) {

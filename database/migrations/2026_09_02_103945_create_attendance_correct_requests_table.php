@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('applications', function (Blueprint $table) {
+        Schema::create('attendance_correct_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('attendance_record_id');
             $table->tinyInteger('status')->default(1)->comment('1:未承認、2:承認済');
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('applications');
+        Schema::dropIfExists('attendance_correct_requests');
     }
 };
