@@ -19,7 +19,7 @@ class CheckRole
             return redirect()->route('login');
         }
 
-        $role = $request->user()->isAdmin();
+        $role = $request->user()->admin_status;
         $request->attributes->set('is_admin', $role);
 
         return $next($request);

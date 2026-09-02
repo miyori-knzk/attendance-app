@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Application;
+use App\Models\AttendanceCorrectRequest;
 use App\Models\AttendanceRecord;
 use Illuminate\Http\Request;
 
@@ -25,16 +25,17 @@ class StampCorrectionRequestController extends Controller
             $query->where('user_id', $user->id);
             $data['user'] = auth()->user();
         }
-        $attendances = $query->orderBy('date', 'asc')->with('application')->get();
+
+        $attendances = $query->orderBy('date', 'asc')->with('attendanceCorrectRequest')->get();
 
         foreach ($attendances as $attendance) {
-            if ($attendance->application) {
+            if ($attendance->attendanceCorrectRequest) {
                 $formattedApplications[] = [
                     'id' => $attendance->id,
-                    'approval_status' => $attendance->application->approval_status,
+                    'approval_status' => $attendance->attendanceCorrectRequest->approval_status,
                     'date' => dateFormat($attendance->date),
-                    'comment' => $attendance->application->comment,
-                    'application_date' => dateFormat($attendance->application->created_at),
+                    'comment' => $attendance->attendanceCorrectRequest->comment,
+                    'application_date' => dateFormat($attendance->attendanceCorrectRequest->created_at),
                     'user' => $attendance->user,
                 ];
 
@@ -42,7 +43,7 @@ class StampCorrectionRequestController extends Controller
         }
 
         $data['formattedApplications'] = $formattedApplications;
-        $data['applications'] = Application::all();
+        $data['applications'] = AttendanceCorrectRequest::all();
 
         return view($view, $data);
     }

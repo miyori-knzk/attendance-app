@@ -54,17 +54,17 @@ class AttendanceRecord extends Model
         return $this->hasMany(BreakRecord::class);
     }
 
-    public function application(): HasOne
+    public function attendanceCorrectRequest(): HasOne
     {
-        return $this->hasOne(Application::class)->withDefault();
+        return $this->hasOne(AttendanceCorrectRequest::class)->withDefault();
     }
 
-    public function applicationIsPending()
+    public function requestIsPending()
     {
         $pending = null;
 
-        if ($this->application->status == 1) {
-            $pending = $this->application;
+        if ($this->attendanceCorrectRequest->status == 1) {
+            $pending = $this->attendanceCorrectRequest;
         }
 
         return $pending;
