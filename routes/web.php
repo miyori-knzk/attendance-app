@@ -21,11 +21,11 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'checkrole'])->group(function () {
     Route::prefix('attendance')->controller(AttendanceController::class)->group(function () {
-        Route::get('/', 'create');
-        Route::post('/', 'store');
-        Route::get('/list', 'index');
-        Route::get('/{attendanceRecord}', 'edit');
-        Route::post('/{attendanceRecord}', 'update');
+        Route::get('', 'create');
+        Route::post('', 'store');
+        Route::get('list', 'index');
+        Route::get('detail/{attendanceRecord}', 'edit');
+        Route::post('detail/{attendanceRecord}', 'update');
     });
     Route::get('/stamp_correction_request/list', [StampCorrectionRequestController::class, 'index']);
 });
