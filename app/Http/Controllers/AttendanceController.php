@@ -207,6 +207,7 @@ class AttendanceController extends Controller
         }
 
         $application = AttendanceCorrectRequest::firstOrNew(['attendance_record_id' => $attendanceRecord->id]);
+        $application->status = 1;
         $application->comment = $formattedArr['comment'];
 
         DB::connection()->transaction(function () use ($formattedArr, $breakArr, $attendanceRecord, $breakRecords, $application) {
@@ -236,6 +237,6 @@ class AttendanceController extends Controller
             $application->save();
         });
 
-        return Redirect('/attendance/' . $attendanceRecord->id);
+        return Redirect('/attendance/detail/' . $attendanceRecord->id);
     }
 }

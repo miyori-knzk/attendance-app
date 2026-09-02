@@ -16,3 +16,8 @@ function dateFormat($val)
 {
     return CarbonImmutable::parse($val)->format('Y/m/d');
 }
+
+function dateToCarbon($val)
+{
+    return CarbonImmutable::parse($val);
+}
