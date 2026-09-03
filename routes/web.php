@@ -27,5 +27,9 @@ Route::middleware(['auth', 'checkrole'])->group(function () {
         Route::get('detail/{id}', 'edit');
         Route::post('detail/{id}', 'requestStore');
     });
-    Route::get('/stamp_correction_request/list', [StampCorrectionRequestController::class, 'index']);
+    Route::prefix('stamp_correction_request')->controller(StampCorrectionRequestController::class)->group(function () {
+        Route::get('list', 'index');
+        Route::get('approve/{attendance_correct_request_id}', 'show');
+        Route::post('approve/{attendance_correct_request_id}', 'update');
+    });
 });
