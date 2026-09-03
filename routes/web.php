@@ -24,8 +24,8 @@ Route::middleware(['auth', 'checkrole'])->group(function () {
         Route::get('', 'create');
         Route::post('', 'store');
         Route::get('list', 'index');
-        Route::get('detail/{attendanceRecord}', 'edit');
-        Route::post('detail/{attendanceRecord}', 'update');
+        Route::get('detail/{id}', 'edit');
+        Route::post('detail/{id}', 'requestStore');
     });
     Route::get('/stamp_correction_request/list', [StampCorrectionRequestController::class, 'index']);
 });

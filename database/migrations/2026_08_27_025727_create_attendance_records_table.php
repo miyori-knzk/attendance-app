@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id');
             $table->date('date');
-            $table->time('clock_in')->nullable();
+            $table->time('clock_in');
             $table->time('clock_out')->nullable();
+            $table->string('comment')->nullable();
             $table->timestamps();
             $table->unique(['user_id', 'date']);
         });
