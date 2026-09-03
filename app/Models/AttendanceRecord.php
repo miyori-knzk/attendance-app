@@ -15,8 +15,7 @@ class AttendanceRecord extends Model
     protected $fillable = [
         'user_id',
         'date',
-        'clock_in',
-        'clock_out',
+        'comment',
     ];
 
     public function getDateAttribute($value)
