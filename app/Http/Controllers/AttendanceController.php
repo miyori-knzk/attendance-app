@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AttendanceUpdateRequest;
-use App\Models\AttendanceCorrectRequest;
 use App\Models\AttendanceRecord;
-use App\Models\BreakRecord;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -184,57 +184,44 @@ class AttendanceController extends Controller
         return view('user.user-detail', compact('data', 'user'));
     }
 
-    public function update(AttendanceUpdateRequest $request, AttendanceRecord $attendanceRecord)
+    /**
+     * 打刻修正申請を保存
+     *
+     * @param  AttendanceUpdateRequest  $request  バリデート済みリクエストオブジェクト
+     * @param  int  $id  AttendanceRecord の ID
+     * @return RedirectResponse
+     *
+     * @throws ModelNotFoundException // AttendanceRecord が見つからない場合
+     */
+    public function requestStore(AttendanceUpdateRequest $request, $id)
     {
         $breakArr = [];
+        $bCrrRequestIds = [];
         $validated = $request->validated();
 
-        $formattedKeys = str_replace('new_', '', array_keys($validated));
-        $vals = array_values($validated);
-        foreach ($vals as $val) {
-            $formattedVals[] = hiToTime($val);
-        }
-        $formattedArr = array_combine($formattedKeys, $vals);
-
-        $breakRecords = BreakRecord::where('attendance_record_id', $attendanceRecord->id)->orderBy('break_in', 'asc')->get();
-        foreach ($formattedArr['break_in'] as $key => $inVal) {
+        foreach ($validated['new_break_in'] as $key => $inVal) {
             if ($inVal != null) {
                 $breakArr[] = [
-                    'break_in' => HiToTime($inVal),
-                    'break_out' => HiToTime($formattedArr['break_out'][$key]),
+                    'new_break_in' => $inVal,
+                    'new_break_out' => $validated['new_break_out'][$key],
                 ];
             }
         }
 
-        $application = AttendanceCorrectRequest::firstOrNew(['attendance_record_id' => $attendanceRecord->id]);
-        $application->status = 1;
-        $application->comment = $formattedArr['comment'];
+        $attendanceRecord = AttendanceRecord::findOrFail($id);
 
-        DB::connection()->transaction(function () use ($formattedArr, $breakArr, $attendanceRecord, $breakRecords, $application) {
-            $attendanceRecord->clock_in = $formattedArr['clock_in'];
-            $attendanceRecord->clock_out = $formattedArr['clock_out'];
-            $attendanceRecord->save();
+        DB::connection()->transaction(function () use ($validated, $breakArr, $attendanceRecord) {
 
-            $brrCnt = count($breakArr);
+            $correctRequest = $attendanceRecord->attendanceCorrectRequest()->create($validated);
+            $correctRequest->clockCorrectRequest()->create($validated);
+            $attendanceRecord->update($validated);
 
-            if ($breakRecords->count() <= $brrCnt) {
-                $cnt = 0;
-                foreach ($breakRecords as $breakRecord) {
-                    $breakRecords->break_in = $breakArr[$cnt]['break_in'];
-                    $breakRecords->break_out = $breakArr[$cnt]['break_in'];
-                    $breakRecord->save();
+            if (count($breakArr) > 0) {
+                foreach ($breakArr as $break) {
+                    $correctRequest->breakCorrectRequests()->create($break);
                 }
             }
 
-            if ($brrCnt != 0) {
-                BreakRecord::create([
-                    'attendance_record_id' => $attendanceRecord->id,
-                    'break_in' => $breakArr[$brrCnt - 1]['break_in'],
-                    'break_out' => $breakArr[$brrCnt - 1]['break_out'],
-                ]);
-            }
-
-            $application->save();
         });
 
         return Redirect('/attendance/detail/' . $attendanceRecord->id);

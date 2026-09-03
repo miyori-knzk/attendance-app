@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\AttendanceCorrectRequest;
-use App\Models\AttendanceRecord;
 use Illuminate\Http\Request;
 
 class StampCorrectionRequestController extends Controller
@@ -18,27 +17,25 @@ class StampCorrectionRequestController extends Controller
         $view = 'user.user-application-list';
         $user = Auth()->user();
 
-        $query = AttendanceRecord::query();
+        $query = AttendanceCorrectRequest::query();
         if ($isAdmin) {
             $view = 'admin.admin-application-list';
         } else {
-            $query->where('user_id', $user->id);
             $data['user'] = auth()->user();
         }
 
-        $attendances = $query->orderBy('date', 'asc')->with('attendanceCorrectRequest')->get();
+        $applications = $query->orderBy('created_at', 'asc')->with('attendanceRecord')->get();
 
-        foreach ($attendances as $attendance) {
-            if ($attendance->attendanceCorrectRequest) {
+        foreach ($applications as $application) {
+            if ($application->user->id == $user->id) {
                 $formattedApplications[] = [
-                    'id' => $attendance->id,
-                    'approval_status' => $attendance->attendanceCorrectRequest->approval_status,
-                    'date' => dateFormat($attendance->date),
-                    'comment' => $attendance->attendanceCorrectRequest->comment,
-                    'application_date' => dateFormat($attendance->attendanceCorrectRequest->created_at),
-                    'user' => $attendance->user,
+                    'id' => $application->attendance_id,
+                    'approval_status' => $application->approval_status,
+                    'date' => dateFormat($application->attendanceRecord->date),
+                    'comment' => $application->comment,
+                    'application_date' => dateFormat($application->created_at),
+                    'user' => $application->user,
                 ];
-
             }
         }
 

@@ -13,11 +13,10 @@ return new class extends Migration
     {
         Schema::create('attendance_correct_requests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('attendance_record_id');
+            $table->foreignId('attendance_record_id')->constrained()->cascadeOnDelete();
             $table->tinyInteger('status')->default(1)->comment('1:未承認、2:承認済');
-            $table->string('comment');
             $table->timestamps();
-            $table->unique('attendance_record_id');
+            $table->unique(['attendance_record_id', 'status']);
         });
     }
 

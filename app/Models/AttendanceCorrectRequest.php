@@ -51,6 +51,16 @@ class AttendanceCorrectRequest extends Model
         return $this->belongsTo(AttendanceRecord::class);
     }
 
+    public function breakCorrectRequests()
+    {
+        return $this->hasMany(BreakCorrectRequest::class);
+    }
+
+    public function clockCorrectRequest()
+    {
+        return $this->hasOne(ClockCorrectRequest::class);
+    }
+
     public function getUserAttribute()
     {
         return $this->attendanceRecord->user;
