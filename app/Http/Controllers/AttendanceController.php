@@ -214,6 +214,7 @@ class AttendanceController extends Controller
 
             $correctRequest = $attendanceRecord->attendanceCorrectRequest()->create($validated);
             $correctRequest->clockCorrectRequest()->create($validated);
+            $attendanceRecord->update($validated);
 
             if (count($breakArr) > 0) {
                 foreach ($breakArr as $break) {

@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('attendance_records', function (Blueprint $table) {
+        Schema::create('clock_requests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id');
-            $table->date('date');
-            $table->string('comment')->nullable();
+            $table->time('clock_in');
+            $table->time('clock_out')->nullable();
             $table->timestamps();
-            $table->unique(['user_id', 'date']);
         });
     }
 
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('attendance_records');
+        Schema::dropIfExists('clock_requests');
     }
 };
