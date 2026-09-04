@@ -63,10 +63,9 @@ class User extends Authenticatable
             return '勤務外';
         }
 
-        $clockStatus = $todayAttndance;
-        $breakStatus = $todayAttndance->breakRecords()->orderBy('break_in', 'desc')->firstOrNew();
+        $breakStatus = $todayAttndance->breakRecords()->orderBy('break_in', 'desc')->first();
 
-        if ($clockStatus->clock_out) {
+        if ($todayAttndance->clockRecord->clock_out) {
             return '退勤済';
         } elseif ($breakStatus->break_in && ! $breakStatus->break_out) {
             return '休憩中';

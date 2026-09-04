@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AttendanceStoreRequest;
 use App\Http\Requests\AttendanceUpdateRequest;
 use App\Models\AttendanceRecord;
 use Carbon\CarbonImmutable;
@@ -21,22 +22,16 @@ class AttendanceController extends Controller
         return view('user.attendance-register', compact('user', 'formattedDate', 'formattedTime'));
     }
 
-    public function store(Request $request)
+    public function store(AttendanceStoreRequest $request)
     {
         $action = null;
         $actionTbl = 'break';
         $attendance = null;
-        $time = date('H:i');
-        $today = date('Y-m-d');
-        $chaildTable = null;
         $user = auth()->user();
+        $today = date('Y-m-d');
 
         if ($request->filled('action')) {
             $action = $request->action;
-        }
-
-        if (substr($action, 0, 5) == 'clock') {
-            $actionTbl = 'clock';
         }
 
         $attendance = AttendanceRecord::firstOrNew([
@@ -44,7 +39,7 @@ class AttendanceController extends Controller
             'date' => $today,
         ]);
 
-        $latestAtt = AttendanceRecord::where('user_id', $user->id)->orderBy('date', 'desc')->first();
+        $latestAtt = AttendanceRecord::getLatestAttendance($user);
 
         if ($latestAtt) {
             $startDay = CarbonImmutable::parse($latestAtt->date)->addDay();
@@ -52,7 +47,8 @@ class AttendanceController extends Controller
             $startDay = $user->created_at;
         }
 
-        DB::connection()->transaction(function () use ($startDay, $action, $attendance, $time, $today, $user) {
+        DB::connection()->transaction(function () use ($startDay, $action, $attendance, $today, $user) {
+            $time = date('H:i');
             if ($action == 'clock_in') {
                 // 今日より前で、レコードがない日の勤怠テーブルの空レコード作成
                 for ($date = $startDay; $date->lt($today); $date->addDay()) {
@@ -61,16 +57,20 @@ class AttendanceController extends Controller
                         'date' => $date,
                     ]);
                 }
-                $attendance->$action = $time;
+                // 今日の分のレコード作成
                 $attendance->save();
+                $attendance->clockRecord()->create([$action => $time]);
             } else {
                 if ($action == 'clock_out') {
-                    $attendance->update([$action => $time]);
+                    $attendance->clockRecord()->update([$action => $time]);
                 } else {
                     if ($action == 'break_in') {
                         $attendance->breakRecords()->create([$action => $time]);
                     } else {
-                        $attendance->breakRecords()->orderBy('break_in', 'desc')->first()->update([$action => $time]);
+                        $attendance->breakRecords()->whereNull('break_out')
+                            ->orderBy('break_in', 'desc')
+                            ->first()
+                            ->update([$action => $time]);
                     }
                 }
             }
@@ -100,9 +100,7 @@ class AttendanceController extends Controller
         $endOfMonth = $date->endOfMonth();
 
         $attendances = AttendanceRecord::where('user_id', $user->id)
-            ->whereDate('date', '>=', $firstOfMonth)
-            ->whereDate('date', '<=', $endOfMonth)
-            ->with('breakRecords')
+            ->with('clockRecord', 'breakRecords')
             ->orderBy('date')
             ->get();
 
@@ -113,44 +111,38 @@ class AttendanceController extends Controller
 
             $tmpDayOfWeek = $attDay->dayOfWeek;
 
-            if ($attendance) {
-                $tmpClockIn = $attendance->clock_in ?
-                                 CarbonImmutable::parse($attendance->clock_in) : null;
-                $tmpClockOut = $attendance->clock_out ?
-                                    CarbonImmutable::parse($attendance->clock_out) : null;
+            $clockRecord = $attendance->clockRecord;
+            $tmpClockIn = $clockRecord->clock_in ?
+                                CarbonImmutable::parse($clockRecord->clock_in) : null;
+            $tmpClockOut = $clockRecord->clock_in ?
+                                CarbonImmutable::parse($clockRecord->clock_in) : null;
 
-                if ($tmpClockIn && $tmpClockOut) {
-                    $workSum = $tmpClockIn->diffInMinutes($tmpClockOut);
-                } else {
-                    $workSum = 0;
-                }
-
-                $breaks = $attendance->breakRecords()->get();
-
-                foreach ($breaks as $break) {
-                    $tmpBreakIn = $break->break_in ? CarbonImmutable::parse($break->break_in) : null;
-                    $tmpBreakOut = $break->break_out ? CarbonImmutable::parse($break->break_out) : null;
-                    if ($tmpBreakIn && $tmpBreakOut) {
-                        $difMin = $tmpBreakIn->diffInMinutes($tmpBreakOut);
-                    } else {
-                        $difMin = 0;
-                    }
-                    $breakSum = $breakSum + $difMin;
-                }
-
-                $tmpClockInFormat = $tmpClockIn ? $tmpClockIn->format('H:i') : null;
-                $tmpClockOutFormat = $tmpClockOut ? $tmpClockOut->format('H:i') : null;
-                $tmpTotalBreakTime = $breakSum * 60;
-                if ($workSum - $breakSum < 0) {
-                    $tmpTotalTime = null;
-                } else {
-                    $tmpTotalTime = ($workSum - $breakSum) * 60;
-                }
+            if ($tmpClockIn && $tmpClockOut) {
+                $workSum = $tmpClockIn->diffInMinutes($tmpClockOut);
             } else {
-                $tmpClockInFormat = null;
-                $tmpClockOutFormat = null;
-                $tmpTotalBreakTime = null;
+                $workSum = 0;
+            }
+
+            $breakRecords = $attendance->breakRecords()->get();
+
+            foreach ($breakRecords as $break) {
+                $tmpBreakIn = $break->break_in ? CarbonImmutable::parse($break->break_in) : null;
+                $tmpBreakOut = $break->break_out ? CarbonImmutable::parse($break->break_out) : null;
+                if ($tmpBreakIn && $tmpBreakOut) {
+                    $difMin = $tmpBreakIn->diffInMinutes($tmpBreakOut);
+                } else {
+                    $difMin = 0;
+                }
+                $breakSum = $breakSum + $difMin;
+            }
+
+            $tmpClockInFormat = $tmpClockIn ? $tmpClockIn->format('H:i') : null;
+            $tmpClockOutFormat = $tmpClockOut ? $tmpClockOut->format('H:i') : null;
+            $tmpTotalBreakTime = $breakSum * 60;
+            if ($workSum - $breakSum < 0) {
                 $tmpTotalTime = null;
+            } else {
+                $tmpTotalTime = ($workSum - $breakSum) * 60;
             }
 
             $formattedAttendanceRecords[] = [
@@ -166,9 +158,11 @@ class AttendanceController extends Controller
         return view('user.user-attendance-list', compact('previousMonth', 'date', 'nextMonth', 'formattedAttendanceRecords'));
     }
 
-    public function edit(AttendanceRecord $attendanceRecord)
+    public function edit($id)
     {
         $data = [];
+        $breaks = [];
+        $attendanceRecord = AttendanceRecord::findOrFail($id);
 
         $data['id'] = $attendanceRecord->id;
         $data['application'] = $attendanceRecord->requestIsPending();
@@ -176,10 +170,28 @@ class AttendanceController extends Controller
         $spritDate = explode('-', $attendanceRecord->date);
         $data['year'] = $spritDate[0] . '年';
         $data['date'] = $spritDate[1] . '月' . $spritDate[2] . '日';
-        $data['clock_in'] = $attendanceRecord->clock_in;
-        $data['clock_out'] = $attendanceRecord->clock_out;
-        $data['breaks'] = $attendanceRecord->breakRecords()->get();
-        $data['comment'] = $attendanceRecord->attendanceCorrectRequest->comment;
+
+        if ($attendanceRecord->requestIsPending()) {
+            $pendingRecord = $attendanceRecord->requestIsPending();
+            $clock_in = timeFormat($pendingRecord->new_clock_in);
+            $clock_out = timeFormat($pendingRecord->new_clock_in);
+            foreach ($pendingRecord->breakCorrectRequests()->get() as $break) {
+                $breaks[] = [
+                    'break_in' => timeFormat($break->new_break_in),
+                    'break_out' => timeFormat($break->new_break_out),
+                ];
+            }
+        } else {
+            $clockRecord = $attendanceRecord->clockRecord;
+            $clock_in = timeFormat($clockRecord->clock_in);
+            $clock_out = timeFormat($clockRecord->clock_out);
+            $breaks = $attendanceRecord->breakRecords()->get();
+        }
+
+        $data['clock_in'] = $clock_in;
+        $data['clock_out'] = $clock_out;
+        $data['breaks'] = $breaks;
+        $data['comment'] = $attendanceRecord->comment;
 
         return view('user.user-detail', compact('data', 'user'));
     }

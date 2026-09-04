@@ -13,8 +13,6 @@ class AttendanceCorrectRequest extends Model
     protected $fillable = [
         'attendance_record_id',
         'status',
-        'comment',
-
     ];
 
     public function getapprovalStatusAttribute(): string
@@ -38,12 +36,12 @@ class AttendanceCorrectRequest extends Model
 
     public function getNewClockInAttribute()
     {
-        return $this->attendanceRecord->clock_in;
+        return $this->clockCorrectRequest->new_clock_in;
     }
 
     public function getNewClockOutAttribute()
     {
-        return $this->attendanceRecord->clock_out;
+        return $this->clockCorrectRequest->new_clock_out;
     }
 
     public function attendanceRecord(): BelongsTo
