@@ -21,3 +21,8 @@ function dateToCarbon($val)
 {
     return CarbonImmutable::parse($val);
 }
+
+function timeFormat($val)
+{
+    return CarbonImmutable::parse($val)->format('H:i');
+}

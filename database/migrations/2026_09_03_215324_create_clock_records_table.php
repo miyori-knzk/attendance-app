@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('clock_requests', function (Blueprint $table) {
+        Schema::create('clock_records', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('attendance_record_id');
             $table->time('clock_in');
             $table->time('clock_out')->nullable();
             $table->timestamps();
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('clock_requests');
+        Schema::dropIfExists('clock_records');
     }
 };

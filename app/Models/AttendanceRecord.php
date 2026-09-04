@@ -33,6 +33,11 @@ class AttendanceRecord extends Model
         return $default;
     }
 
+    public static function getLatestAttendance($user)
+    {
+        return self::where('user_id', $user->id)->orderBy('date', 'desc')->first();
+    }
+
     public function getClockOutAttribute($value)
     {
         $default = null;
@@ -53,19 +58,18 @@ class AttendanceRecord extends Model
         return $this->hasMany(BreakRecord::class);
     }
 
-    public function attendanceCorrectRequest(): HasOne
+    public function clockRecord(): HasOne
     {
-        return $this->hasOne(AttendanceCorrectRequest::class)->withDefault();
+        return $this->hasOne(ClockRecord::class);
+    }
+
+    public function attendanceCorrectRequest(): HasMany
+    {
+        return $this->hasMany(AttendanceCorrectRequest::class);
     }
 
     public function requestIsPending()
     {
-        $pending = null;
-
-        if ($this->attendanceCorrectRequest->status == 1) {
-            $pending = $this->attendanceCorrectRequest;
-        }
-
-        return $pending;
+        return $this->attendanceCorrectRequest()->where('status', 1)->first();
     }
 }
