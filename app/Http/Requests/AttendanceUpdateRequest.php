@@ -48,7 +48,7 @@ class AttendanceUpdateRequest extends FormRequest
             $clockInTime = CarbonImmutable::createFromFormat('H:i', mb_convert_kana($clockIn, 'ask'));
             $clockOutTime = CarbonImmutable::createFromFormat('H:i', mb_convert_kana($clockOut, 'ask'));
 
-            if ($clockOutTime->lessThanOrEqualTo($clockInTime)) {
+            if ($clockOutTime->lessThan($clockInTime)) {
                 $validator->errors()->add('new_clock_out', '出勤時間もしくは退勤時間が不適切な値です');
             }
 

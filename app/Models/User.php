@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -63,11 +64,11 @@ class User extends Authenticatable
             return '勤務外';
         }
 
-        $breakStatus = $todayAttndance->breakRecords()->orderBy('break_in', 'desc')->first();
+        $breakStatus = $todayAttndance->breakRecords()->orderBy('break_in', 'desc')->orderBy('id', 'desc')->first();
 
         if ($todayAttndance->clockRecord->clock_out) {
             return '退勤済';
-        } elseif ($breakStatus->break_in && ! $breakStatus->break_out) {
+        } elseif ($breakStatus && $breakStatus->break_in && ! $breakStatus->break_out) {
             return '休憩中';
         } else {
             return '出勤中';

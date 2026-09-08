@@ -18,7 +18,8 @@
                         <label class="form__header" for="name">名前</label>
                         <div class="form__input-group">
                             <input class="form__input form__input--name" id="name" type="text" name="name" value="{{ $user->name }}"
-                                readonly>
+                                readonly
+                                style="width: 100%;">
                         </div>
                     </div>
 
@@ -110,7 +111,9 @@
                         <label class="form__header">名前</label>
                         <div class="form__input-group">
                             <input class="form__input form__input--name readonly" type="text" value="{{ $user->name }}"
-                                readonly>
+                                readonly
+                                style="width: 100%;"
+                            >
                         </div>
                     </div>
 
