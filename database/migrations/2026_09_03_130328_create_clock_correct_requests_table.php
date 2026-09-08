@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('clock_correct_requests', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('attendance_correct_request_id');
-            $table->time('new_clock_in');
-            $table->time('new_clock_out');
+            $table->string('new_clock_in', 5);
+            $table->string('new_clock_out', 5);
             $table->timestamps();
             $table->foreign('attendance_correct_request_id', 'fk_attendance_correct_request1')
                 ->references('id')

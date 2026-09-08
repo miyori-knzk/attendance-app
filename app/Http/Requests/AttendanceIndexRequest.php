@@ -4,9 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class AttendanceStoreRequest extends FormRequest
+class AttendanceIndexRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,7 +23,7 @@ class AttendanceStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'action' => ['required', Rule::in(['clock_in', 'clock_out', 'break_in', 'break_out'])],
+            'date' => ['nullable', 'date_format:Y-m-d'],
         ];
     }
 }

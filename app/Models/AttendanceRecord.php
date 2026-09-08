@@ -18,34 +18,28 @@ class AttendanceRecord extends Model
         'comment',
     ];
 
-    public function getDateAttribute($value)
+    public static function getMonthUserData($startDay, $endDay, $user = null)
     {
-        return date('Y-m-d', strtotime($value));
-    }
-
-    public function getClockInAttribute($value)
-    {
-        $default = null;
-        if ($value) {
-            $default = date('H:i', strtotime($value));
+        if ($user == null) {
+            $user = auth()->user();
         }
 
-        return $default;
+        return self::where('user_id', $user->id)
+            ->where('date', '>=', $startDay)
+            ->where('date', '<=', $endDay)
+            ->with('clockRecord', 'breakRecords')
+            ->orderBy('date')
+            ->get();
+    }
+
+    public function onBreakData()
+    {
+        return $this->breakRecords->whereNull('break_out')->first();
     }
 
     public static function getLatestAttendance($user)
     {
         return self::where('user_id', $user->id)->orderBy('date', 'desc')->first();
-    }
-
-    public function getClockOutAttribute($value)
-    {
-        $default = null;
-        if ($value) {
-            $default = date('H:i', strtotime($value));
-        }
-
-        return $default;
     }
 
     public function user(): BelongsTo

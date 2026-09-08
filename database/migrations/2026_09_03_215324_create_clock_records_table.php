@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('clock_records', function (Blueprint $table) {
             $table->id();
             $table->foreignId('attendance_record_id');
-            $table->time('clock_in');
-            $table->time('clock_out')->nullable();
+            $table->string('clock_in', 5);
+            $table->string('clock_out', 5)->nullable();
             $table->timestamps();
         });
     }

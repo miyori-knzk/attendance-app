@@ -13,6 +13,7 @@ class AttendanceCorrectRequest extends Model
     protected $fillable = [
         'attendance_record_id',
         'status',
+        'comment',
     ];
 
     public function getapprovalStatusAttribute(): string
@@ -31,7 +32,7 @@ class AttendanceCorrectRequest extends Model
 
     public function getNewDateAttribute()
     {
-        return dateToCarbon($this->attendanceRecord->date);
+        return dateformat($this->attendanceRecord->date);
     }
 
     public function getNewClockInAttribute()

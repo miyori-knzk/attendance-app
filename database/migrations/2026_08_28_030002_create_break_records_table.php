@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('break_records', function (Blueprint $table) {
             $table->id();
             $table->foreignId('attendance_record_id');
-            $table->time('break_in');
-            $table->time('break_out')->nullable();
+            $table->string('break_in', 5);
+            $table->string('break_out', 5)->nullable();
             $table->timestamps();
         });
     }

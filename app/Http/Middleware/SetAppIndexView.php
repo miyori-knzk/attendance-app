@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class CheckRole
+class SetAppIndexView
 {
     /**
      * Handle an incoming request.
@@ -20,7 +20,12 @@ class CheckRole
         }
 
         $role = $request->user()->admin_status;
-        $request->attributes->set('is_admin', $role);
+
+        if ($role) {
+            $request->attributes->set('view', 'admin.admin-application-list');
+        } else {
+            $request->attributes->set('view', 'user.user-application-list');
+        }
 
         return $next($request);
     }

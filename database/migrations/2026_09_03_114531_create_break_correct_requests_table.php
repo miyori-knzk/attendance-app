@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('break_correct_requests', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('attendance_correct_request_id');
-            $table->time('new_break_in');
-            $table->time('new_break_out');
+            $table->string('new_break_in', 5);
+            $table->string('new_break_out', 5);
             $table->timestamps();
             $table->foreign('attendance_correct_request_id', 'fk_attendance_correct_request2')
                 ->references('id')

@@ -19,7 +19,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware(['auth', 'checkrole'])->group(function () {
+Route::middleware('auth')->group(function () {
     Route::prefix('attendance')->controller(AttendanceController::class)->group(function () {
         Route::get('', 'create');
         Route::post('', 'store');
@@ -28,7 +28,7 @@ Route::middleware(['auth', 'checkrole'])->group(function () {
         Route::post('detail/{id}', 'requestStore');
     });
     Route::prefix('stamp_correction_request')->controller(StampCorrectionRequestController::class)->group(function () {
-        Route::get('list', 'index');
+        Route::get('list', 'index')->middleware('set.app.index.view');
         Route::get('approve/{attendance_correct_request_id}', 'show');
         Route::post('approve/{attendance_correct_request_id}', 'update');
     });
