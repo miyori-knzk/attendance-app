@@ -37,7 +37,7 @@ class StampCorrectionRequestService
         DB::connection()->transaction(function () use ($application, $attendance, $breakRecords, $breakCorrectRequests) {
             $this->updateClockRecord($attendance, $application);
             $this->updateBreakRecord($breakRecords, $breakCorrectRequests);
-            $application->update(['status' => 2]);
+            $application->update(['status' => $attendance->attendanceCorrectRequests()->max('status') + 1]);
             $attendance->update(['comment' => $application->comment]);
         });
     }

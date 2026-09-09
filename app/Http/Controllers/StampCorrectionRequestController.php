@@ -23,6 +23,7 @@ class StampCorrectionRequestController extends Controller
      * 一般ユーザーは自分の申請のみ表示
      * ミドルウエアで表示するビューを設定している
      *
+     * @param  Request  $request  HTTP リクエスト
      * @return View
      */
     public function index(Request $request)

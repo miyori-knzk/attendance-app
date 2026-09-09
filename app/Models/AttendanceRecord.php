@@ -57,13 +57,13 @@ class AttendanceRecord extends Model
         return $this->hasOne(ClockRecord::class);
     }
 
-    public function attendanceCorrectRequest(): HasMany
+    public function attendanceCorrectRequests(): HasMany
     {
         return $this->hasMany(AttendanceCorrectRequest::class);
     }
 
     public function requestIsPending()
     {
-        return $this->attendanceCorrectRequest()->where('status', 1)->first();
+        return $this->attendanceCorrectRequests()->where('status', 1)->first();
     }
 }
