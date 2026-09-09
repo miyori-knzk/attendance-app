@@ -165,7 +165,7 @@ class AttendanceService
 
         DB::connection()->transaction(function () use ($validated, $breakArr, $attendanceRecord) {
 
-            $correctRequest = $attendanceRecord->attendanceCorrectRequest()->create($validated);
+            $correctRequest = $attendanceRecord->attendanceCorrectRequests()->create($validated);
             $correctRequest->clockCorrectRequest()->create($validated);
 
             if (count($breakArr) > 0) {
@@ -211,11 +211,11 @@ class AttendanceService
 
         $startDay = $this->getStartDay($user);
 
-        DB::connection()->transaction(function () use ($startDay, $action, $attendance, $today) {
+        DB::connection()->transaction(function () use ($startDay, $action, $attendance, $today, $user) {
             $time = date('H:i');
             if ($action == 'clock_in') {
                 // 最後の出勤もしくはユーザー作成日から昨日までのAttendanceRecord作成
-                $this->createOnlyAttendanceRecode($startDay, $today);
+                $this->createOnlyAttendanceRecode($startDay, $today, $user);
                 // AttendanceRecord作成
                 $attendance->save();
                 $attendance->clockRecord()->create([$action => $time]);
@@ -246,7 +246,7 @@ class AttendanceService
         return $startDay;
     }
 
-    public function createOnlyAttendanceRecode($startDay, $today)
+    public function createOnlyAttendanceRecode($startDay, $today, $user)
     {
         for ($date = $startDay; $date->lt($today); $date->addDay()) {
             AttendanceRecord::firstOrCreate([

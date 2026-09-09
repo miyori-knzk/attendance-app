@@ -18,11 +18,15 @@ class AttendanceCorrectRequest extends Model
 
     public function getapprovalStatusAttribute(): string
     {
-        return match ($this->status) {
-            1 => '承認待ち',
-            2 => '承認済み',
-            default => '未申請',
-        };
+        $status = '未申請';
+
+        if ($this->status == 1) {
+            $status = '承認待ち';
+        } elseif ($this->status >= 2) {
+            $status = '承認済み';
+        }
+
+        return $status;
     }
 
     public function getProposalBreaksAttribute()
