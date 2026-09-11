@@ -6,7 +6,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class AttendanceUpdateRequest extends FormRequest
+class CorrectStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Log;
 
 class AttendanceRecord extends Model
 {
@@ -20,9 +21,18 @@ class AttendanceRecord extends Model
 
     public static function getMonthUserData($startDay, $endDay, $user = null)
     {
-        if ($user == null) {
+        if ($user === null) {
             $user = auth()->user();
         }
+
+        Log::debug($startDay);
+        Log::debug($endDay);
+
+        Log::debug(self::where('user_id', $user->id)
+            ->where('date', '>=', $startDay)
+            ->where('date', '<=', $endDay)
+            ->orderBy('date')
+            ->get()->count());
 
         return self::where('user_id', $user->id)
             ->where('date', '>=', $startDay)

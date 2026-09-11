@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AttendanceIndexRequest;
 use App\Http\Requests\AttendanceStoreRequest;
-use App\Http\Requests\AttendanceUpdateRequest;
+use App\Http\Requests\CorrectStoreRequest;
 use App\Models\AttendanceRecord;
 use App\Services\AttendanceService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -27,7 +27,7 @@ class AttendanceController extends Controller
     {
         $user = auth()->user();
         $formattedDate = date('Y年n月j日', strtotime('today'));
-        $formattedTime = null;
+        $formattedTime = now()->format('H:i');
 
         return view('user.attendance-register', compact('user', 'formattedDate', 'formattedTime'));
     }
@@ -111,7 +111,7 @@ class AttendanceController extends Controller
      *
      * @throws ModelNotFoundException // AttendanceRecord が見つからない場合
      */
-    public function requestStore(AttendanceUpdateRequest $request, $id)
+    public function requestStore(CorrectStoreRequest $request, $id)
     {
         $attendanceRecord = AttendanceRecord::findOrFail($id);
         $this->attendanceService->saveRequestRecord($request, $attendanceRecord);
