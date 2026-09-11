@@ -24,15 +24,6 @@ class AttendanceRecord extends Model
             $user = auth()->user();
         }
 
-        Log::debug($startDay);
-        Log::debug($endDay);
-
-        Log::debug(self::where('user_id', $user->id)
-            ->where('date', '>=', $startDay)
-            ->where('date', '<=', $endDay)
-            ->orderBy('date')
-            ->get()->count());
-
         return self::where('user_id', $user->id)
             ->where('date', '>=', $startDay)
             ->where('date', '<=', $endDay)
