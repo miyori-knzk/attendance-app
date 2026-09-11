@@ -3,7 +3,7 @@
 return [
     'custom' => [
         'name' => [
-            'required' => 'お名前を入力してください',
+            'required' => 'お名前を入力してださい',
         ],
         'email' => [
             'required' => 'メールアドレスを入力してください',
