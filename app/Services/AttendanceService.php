@@ -15,8 +15,8 @@ class AttendanceService
             $user = auth()->user();
         }
 
-        $startDay = getFirstOfMonth($date);
-        $endDay = getEndOfMonth($date);
+        $startDay = getFirstOfMonth($date)->format('Y-m-d');
+        $endDay = getEndOfMonth($date)->format('Y-m-d');
 
         $attendances = AttendanceRecord::getMonthUserData($startDay, $endDay);
 
@@ -158,6 +158,7 @@ class AttendanceService
     public function saveRequestRecord($request, $attendanceRecord)
     {
         $validated = $request->validated();
+
         $breakIn = $validated['new_break_in'];
         $breakOut = $validated['new_break_out'];
 

@@ -15,7 +15,7 @@ class StampCorrectionRequestService
 
             if ($application->user->id == $user->id) {
                 $formattedApplications[] = [
-                    'id' => $application->attendance_id,
+                    'id' => $application->attendance_record_id,
                     'approval_status' => $application->approval_status,
                     'date' => dateFormat2($application->attendanceRecord->date),
                     'comment' => $application->comment,
