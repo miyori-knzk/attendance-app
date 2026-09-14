@@ -46,6 +46,42 @@ class AttendanceService
         return $formattedAttendanceRecords;
     }
 
+    public function attDatasCollection($date)
+    {
+        $attendanceRecords = [];
+        $attendanceColl = collect();
+
+        $attendances = AttendanceRecord::todayData($date)->get();
+
+        if ($attendances->count() <= 0) {
+            return $attendanceColl;
+        }
+
+        foreach ($attendances as $attendance) {
+            $attDay = dateFormat($attendance->date);
+
+            $tmpDayOfWeek = $attDay->dayOfWeek;
+
+            $tmpClocks = $this->calculateWorkTime($attendance);
+            $breakSum = $this->calculateBreakTime($attendance);
+            $totalTime = $this->calculateTotalTime($breakSum, $tmpClocks['workSum']);
+
+            $attendanceRecords[] = [
+                'user_id' => $attendance->user_id,
+                'date' => $attDay->format('m/d') . '(' . jpWeekday($tmpDayOfWeek) . ')',
+                'clock_in' => dateTimeToHi($tmpClocks['tmpClockIn']),
+                'clock_out' => dateTimeToHi($tmpClocks['tmpClockOut']),
+                'total_break_time' => $breakSum,
+                'total_time' => $totalTime,
+                'id' => $attendance->id,
+            ];
+        }
+
+        $attendanceColl = collect($attendanceRecords)->map(fn ($item) => (object) $item);
+
+        return $attendanceColl;
+    }
+
     public function calculateWorkTime($attendance)
     {
         $data = [];
@@ -115,6 +151,7 @@ class AttendanceService
         }
 
         $data['id'] = $attendanceRecord->id;
+        $data['user_id'] = $attendanceRecord->user_id;
 
         return $data;
     }
