@@ -43,5 +43,7 @@ Route::middleware('auth')->group(function () {
         Route::get('attendance/list', 'index');
         Route::get('attendance/{id}', 'edit');
         Route::post('attendance/{id}', 'requestStore');
+        Route::get('attendance/staff/{id}', 'staffAttendance');
+        Route::get('staff/list', 'staffIndex');
     });
 });

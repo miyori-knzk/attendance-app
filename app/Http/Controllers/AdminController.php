@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AdminIndexRequest;
+use App\Http\Requests\StaffAttendanceListRequest;
 use App\Models\User;
 use App\Services\AttendanceService;
 use Illuminate\View\View;
@@ -49,11 +50,50 @@ class AdminController extends Controller
         return view('admin.admin-attendance-list', compact('date', 'previousDay', 'nextDay', 'users', 'attendanceRecords'));
     }
 
+    /**
+     * @param  int  $id  AttendanceRecordのID
+     * @return View
+     *              'admin.admin-detail' ビューを返す
+     */
     public function edit(int $id)
     {
         $attendanceRecord = $this->attendanceService->makeEditData($id);
         $user = User::findOrFail($attendanceRecord['user_id']);
 
         return view('admin.admin-detail', compact('attendanceRecord', 'user'));
+    }
+
+    /**
+     * 選択したスタッフの勤怠一覧表示
+     *
+     * @param  StaffAttendanceListRequest  $request
+     *                                               StaffAttendanceListRequest でバリデーション済みのリクエスト
+     * @return View 'admin.staff-attendance-list'　へビューを返す
+     */
+    public function staffAttendance(StaffAttendanceListRequest $request, $id)
+    {
+        $user = User::findOrFail($id);
+        // リクエストにdateがあれば、バリデート済みのdateを使用、
+        // なければ今日の日付を使用
+
+        $date = dateFormat(date('Y-m-d'));
+
+        if (array_key_exists('date', $request->validated())) {
+            $date = dateFormat($request->validated()['date']);
+        }
+
+        $previousMonth = getFirstOfMonth($date)->subMonth()->format('Y-m-d');
+        $nextMonth = getFirstOfMonth($date)->addMonth()->format('Y-m-d');
+
+        $formattedAttendanceRecords = $this->attendanceService->formatAttDatas($date, $user);
+
+        return view('admin.staff-attendance-list', compact('date', 'user', 'previousMonth', 'nextMonth', 'formattedAttendanceRecords'));
+    }
+
+    public function staffIndex()
+    {
+        $users = User::all();
+
+        return view('admin.staff-list', compact('users'));
     }
 }
