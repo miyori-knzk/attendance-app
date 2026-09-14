@@ -16,7 +16,8 @@
                         <label class="form__header" for="name">名前</label>
                         <div class="form__input-group">
                             <input class="form__input form__input--name" id="name" type="text" name="name" value="{{ $user->name }}"
-                                readonly>
+                                readonly
+                                style="width: 100%;">
                         </div>
                     </div>
                     <div class="form__group">

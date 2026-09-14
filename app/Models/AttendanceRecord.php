@@ -32,6 +32,11 @@ class AttendanceRecord extends Model
             ->get();
     }
 
+    public static function todayData($date)
+    {
+        return self::where('date', $date);
+    }
+
     public function onBreakData()
     {
         return $this->breakRecords->whereNull('break_out')->first();
