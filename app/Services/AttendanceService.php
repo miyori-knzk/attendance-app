@@ -18,7 +18,7 @@ class AttendanceService
         $startDay = getFirstOfMonth($date)->format('Y-m-d');
         $endDay = getEndOfMonth($date)->format('Y-m-d');
 
-        $attendances = AttendanceRecord::getMonthUserData($startDay, $endDay);
+        $attendances = AttendanceRecord::getMonthUserData($startDay, $endDay, $user);
 
         if ($attendances->count() <= 0) {
             return $formattedAttendanceRecords;
