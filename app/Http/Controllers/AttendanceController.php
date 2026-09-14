@@ -116,10 +116,6 @@ class AttendanceController extends Controller
         $attendanceRecord = AttendanceRecord::findOrFail($id);
         $this->attendanceService->saveRequestRecord($request, $attendanceRecord);
 
-        if (auth()->user()->admin_status == 1) {
-            return Redirect('/admin/attendance/' . $attendanceRecord->id);
-        } else {
-            return Redirect('/attendance/detail/' . $attendanceRecord->id);
-        }
+        return Redirect('/attendance/detail/' . $attendanceRecord->id);
     }
 }
