@@ -85,11 +85,7 @@ class AttendanceController extends Controller
     /**
      * 勤怠詳細画面を表示
      *
-     * 処理の概要
-     * AttendanceRecordのIDに基づく勤怠レコードを表示する。
-     * 修正申請中であれば、修正申請中の出退勤と休憩データを表示
-     * 修正申請がない場合、勤怠登録時の出退勤と休憩データ
-     * 修正承認済みであれば、承認済みの出退勤と休憩データを表示する
+     * AttendanceRecordのIDに基づく勤怠レコード表示
      *
      * @param  int  $id  AttendanceRecord の ID
      * @return View 勤怠詳細ページ

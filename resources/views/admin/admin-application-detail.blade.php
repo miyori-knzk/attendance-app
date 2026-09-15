@@ -39,10 +39,10 @@
                     <label class="applied-form__header">{{ $index === 0 ? '休憩' : '休憩' . ($index + 1) }}</label>
                     <div class="applied-form__input-group">
                         <input class="applied-form__input readonly" type="text" name="new_break_in[]"
-                            value="{{ \Carbon\Carbon::parse($break->break_in)->format('H:i') }}" readonly>
+                            value="{{ \Carbon\Carbon::parse($break->new_break_in)->format('H:i') }}" readonly>
                         <p>〜</p>
                         <input class="applied-form__input readonly" type="text" name="new_break_out[]"
-                            value="{{ $break->break_out ? \Carbon\Carbon::parse($break->break_out)->format('H:i') : '' }}" readonly>
+                            value="{{ $break->new_break_out ? \Carbon\Carbon::parse($break->new_break_out)->format('H:i') : '' }}" readonly>
                     </div>
                 </div>
             @endforeach

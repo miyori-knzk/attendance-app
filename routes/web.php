@@ -32,7 +32,7 @@ Route::middleware('auth')->group(function () {
         Route::post('', 'store');
         Route::get('list', 'index');
         Route::get('detail/{id}', 'edit');
-        Route::post('{id}', 'requestStore');
+        Route::post('detail/{id}', 'requestStore');
     });
     Route::prefix('stamp_correction_request')->controller(StampCorrectionRequestController::class)->group(function () {
         Route::get('list', 'index')->middleware('set.app.index.view');
@@ -42,7 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('admin')->controller(AdminController::class)->group(function () {
         Route::get('attendance/list', 'index');
         Route::get('attendance/{id}', 'edit');
-        Route::post('attendance/{id}', 'requestStore');
+        Route::post('attendance/{id}', 'update');
         Route::get('attendance/staff/{id}', 'staffAttendance');
         Route::get('staff/list', 'staffIndex');
     });

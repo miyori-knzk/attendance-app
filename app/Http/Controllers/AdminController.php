@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AdminIndexRequest;
+use App\Http\Requests\AttendanceUpdateRequest;
 use App\Http\Requests\StaffAttendanceListRequest;
 use App\Models\User;
 use App\Services\AttendanceService;
@@ -51,6 +52,8 @@ class AdminController extends Controller
     }
 
     /**
+     * 管理者の勤怠詳細画面表示
+     *
      * @param  int  $id  AttendanceRecordのID
      * @return View
      *              'admin.admin-detail' ビューを返す
@@ -61,6 +64,20 @@ class AdminController extends Controller
         $user = User::findOrFail($attendanceRecord['user_id']);
 
         return view('admin.admin-detail', compact('attendanceRecord', 'user'));
+    }
+
+    /**
+     * 管理者の勤怠詳細画面からの修正
+     *
+     * @param  int  $id  AttenanceRecordのID
+     * @return RedirectResponse 管理者の勤怠詳細画面にリダイレクト
+     */
+    public function update(AttendanceUpdateRequest $request, int $id)
+    {
+        $validated = $request->validated();
+        $attendanceRecord = $this->attendanceService->updateAttendance($validated, $id);
+
+        return redirect('/admin/attendance/' . $id);
     }
 
     /**
@@ -90,6 +107,11 @@ class AdminController extends Controller
         return view('admin.staff-attendance-list', compact('date', 'user', 'previousMonth', 'nextMonth', 'formattedAttendanceRecords'));
     }
 
+    /**
+     * スタッフ一覧表示
+     *
+     * @return View 'admin.staff-list' へビューを返す
+     */
     public function staffIndex()
     {
         $users = User::all();

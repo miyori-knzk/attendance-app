@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AttendanceCorrectRequest;
+use App\Models\BreakRecord;
 use Illuminate\Support\Facades\DB;
 
 class StampCorrectionRequestService
@@ -36,7 +37,7 @@ class StampCorrectionRequestService
 
         DB::connection()->transaction(function () use ($application, $attendance, $breakRecords, $breakCorrectRequests) {
             $this->updateClockRecord($attendance, $application);
-            $this->updateBreakRecord($breakRecords, $breakCorrectRequests);
+            $this->updateBreakRecord($attendance->id, $breakRecords, $breakCorrectRequests);
             $application->update(['status' => $attendance->attendanceCorrectRequests()->max('status') + 1]);
             $attendance->update(['comment' => $application->comment]);
         });
@@ -50,7 +51,7 @@ class StampCorrectionRequestService
         ]);
     }
 
-    public function updateBreakRecord($breakRecords, $breakCorrectRequests)
+    public function updateBreakRecord($attendanceRecordId, $breakRecords, $breakCorrectRequests)
     {
         $max = max($breakRecords->count(), $breakCorrectRequests->count());
 
@@ -69,7 +70,8 @@ class StampCorrectionRequestService
             }
 
             if (! $attData && $corrData) {
-                Att::create([
+                BreakRecord::create([
+                    'attendance_record_id' => $attendanceRecordId,
                     'break_in' => $corrData->new_break_in,
                     'break_out' => $corrData->new_break_out,
                 ]);
