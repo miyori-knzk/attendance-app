@@ -1246,7 +1246,7 @@ class AttendanceControllerTest extends TestCase
         ]);
 
         $response->assertSessionDoesntHaveErrors();
-        $attendanceCorrectRequest = AttendanceCorrectRequest::where('attendance_record_id', $attendanceRecord->id)->first();
+        $attendanceCorrectRequest = AttendanceCorrectRequest::where('attendance_record_id', $attendanceRecord->id)->where('status', 1)->first();
 
         $this->assertDatabaseHas('attendance_correct_requests', [
             'attendance_record_id' => $attendanceRecord->id,

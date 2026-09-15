@@ -31,7 +31,7 @@ class AttendanceCorrectRequest extends Model
 
     public function getProposalBreaksAttribute()
     {
-        return $this->attendanceRecord->breakRecords;
+        return $this->breakCorrectRequests;
     }
 
     public function getNewDateAttribute()

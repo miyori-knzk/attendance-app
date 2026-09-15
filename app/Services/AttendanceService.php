@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AttendanceRecord;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AttendanceService
 {
@@ -87,6 +88,7 @@ class AttendanceService
         $data = [];
 
         $clockRecord = $attendance->clockRecord;
+        Log::debug($attendance);
         $tmpClockIn = timeFormat($clockRecord->clock_in);
         $tmpClockOut = timeFormat($clockRecord->clock_out);
 
@@ -134,17 +136,13 @@ class AttendanceService
 
     public function makeEditData($id)
     {
+
         $attendanceRecord = AttendanceRecord::findOrFail($id);
 
         $data = jpDateformat($attendanceRecord->date);
         $data['application'] = $attendanceRecord->requestIsPending();
 
-        if ($data['application']) {
-            $tmpDatas = $this->makePendingData($attendanceRecord);
-
-        } else {
-            $tmpDatas = $this->makeAttendanceData($attendanceRecord);
-        }
+        $tmpDatas = $this->makeAttendanceData($attendanceRecord);
 
         foreach ($tmpDatas as $key => $val) {
             $data[$key] = $val;
@@ -186,7 +184,7 @@ class AttendanceService
         $clockRecord = $attendanceRecord->clockRecord;
         $data['clock_in'] = $clockRecord->clock_in;
         $data['clock_out'] = $clockRecord->clock_out;
-        $data['breaks'] = $attendanceRecord->breakRecords()->get();
+        $data['breaks'] = $attendanceRecord->breakRecords()->get()->toArray();
         $data['comment'] = $attendanceRecord->comment;
 
         return $data;
@@ -199,7 +197,7 @@ class AttendanceService
         $breakIn = $validated['new_break_in'];
         $breakOut = $validated['new_break_out'];
 
-        $breakArr = $this->makeNewBreakArr($breakIn, $breakOut);
+        $breakArr = $this->makeBreakArr($breakIn, $breakOut, 'new_');
 
         DB::connection()->transaction(function () use ($validated, $breakArr, $attendanceRecord) {
 
@@ -208,22 +206,22 @@ class AttendanceService
 
             if (count($breakArr) > 0) {
                 foreach ($breakArr as $break) {
-                    $correctRequest->breakCorrectRequests()->create($break);
+                    $tmp = $correctRequest->breakCorrectRequests()->create($break);
                 }
             }
 
         });
     }
 
-    public function makeNewBreakArr($breakIn, $breakOut)
+    public function makeBreakArr($breakIn, $breakOut, $type = null)
     {
         $breakArr = [];
 
         foreach ($breakIn as $key => $inVal) {
             if ($inVal != null) {
                 $breakArr[] = [
-                    'new_break_in' => $inVal,
-                    'new_break_out' => $breakOut[$key],
+                    $type . 'break_in' => $inVal,
+                    $type . 'break_out' => $breakOut[$key],
                 ];
             }
         }
@@ -286,11 +284,84 @@ class AttendanceService
 
     public function createOnlyAttendanceRecode($startDay, $today, $user)
     {
-        for ($date = $startDay; $date->lt($today); $date->addDay()) {
+        for ($date = $startDay; $date->lt($today); $date = $date->addDay()) {
             AttendanceRecord::firstOrCreate([
                 'user_id' => $user->id,
                 'date' => $date,
             ]);
+        }
+    }
+
+    public function updateAttendance($validated, $id)
+    {
+        $data = $this->newDataFormat($validated);
+        $breakIn = $data['break_in'];
+        $breakOut = $data['break_out'];
+
+        $breakArr = $this->makeBreakArr($breakIn, $breakOut);
+
+        $attendanceRecord = AttendanceRecord::findOrFail($id);
+        $attendanceRecord->comment = $data['comment'];
+
+        DB::connection()->transaction(function () use ($attendanceRecord, $data, $breakArr) {
+            $this->saveBreakRecords($attendanceRecord, $breakArr);
+            $attendanceRecord->clockRecord->update($data);
+            $attendanceRecord->save();
+        });
+    }
+
+    public function newDataFormat($validated)
+    {
+        $formattedData = [];
+
+        foreach ($validated as $key => $val) {
+            if (str_starts_with($key, 'new_')) {
+                $tmpKey = str_replace('new_', '', $key);
+                $formattedData[$tmpKey] = $val;
+            } else {
+                $formattedData[$key] = $val;
+            }
+        }
+
+        return $formattedData;
+    }
+
+    public function saveBreakRecords($attendanceRecord, $breakArr)
+    {
+        $breakRecords = $attendanceRecord->breakRecords()->get();
+
+        $max = max($breakRecords->count(), count($breakArr));
+
+        for ($i = 0; $i < $max; $i++) {
+
+            $existData = $breakRecords[$i] ?? null;
+            $fixData = $breakArr[$i] ?? null;
+            $objFixData = (object) $fixData;
+
+            if ($existData && $objFixData) {
+                $existData->update([
+                    'break_in' => $objFixData->break_in,
+                    'break_out' => $objFixData->break_out,
+                ]);
+
+                continue;
+            }
+
+            if (! $existData && $objFixData) {
+                BreakRecord::create([
+                    'attendance_record_id' => $attendance->id,
+                    'break_in' => $objFixData->break_in,
+                    'break_out' => $objFixData->break_out,
+                ]);
+
+                continue;
+            }
+
+            if ($existData && ! $objFixData) {
+                $existData->delete();
+
+                continue;
+            }
         }
     }
 }

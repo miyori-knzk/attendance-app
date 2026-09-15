@@ -1,6 +1,7 @@
 <?php
 
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Log;
 
 function hiToTime($val)
 {
@@ -51,6 +52,7 @@ function timeFormat($val)
         return null;
     }
 
+    Log::debug($val);
     try {
         return CarbonImmutable::createFromFormat('H:i', $val);
     } catch (Exception $e) {
