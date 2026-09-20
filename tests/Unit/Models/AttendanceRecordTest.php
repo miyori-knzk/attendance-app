@@ -27,12 +27,12 @@ class AttendanceRecordTest extends TestCase
         $user = User::factory()->create();
         AttendanceRecord::factory()->create([
             'user_id' => $user->id,
-            'date' => date('2026-08-01'),
+            'date' => '2026-08-01',
         ]);
 
         AttendanceRecord::factory()->create([
             'user_id' => $user->id,
-            'date' => date('2026-07-30'),
+            'date' => '2026-07-30',
         ]);
 
         $latestAtt = AttendanceRecord::getLatestAttendance($user);

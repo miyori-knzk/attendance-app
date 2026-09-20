@@ -32,13 +32,13 @@ class AttendanceControllerTest extends TestCase
     public function 現在の日時情報が_u_iと同じ形式で出力されている()
     {
         $user = User::factory()->create();
+        $now = CarbonImmutable::now();
+
         $response = $this->actingAs($user)->get('/attendance');
 
-        $date = date('Y年n月j日', strtotime('today'));
-        $time = now()->format('H:i');
-
-        $response->assertSee($date);
-        $response->assertSee($time);
+        $response->assertStatus(200);
+        $response->assertSee($now->format('Y年n月j日'));
+        $response->assertSee(timeFormat($now));
     }
 
     /** @test */
@@ -701,7 +701,7 @@ class AttendanceControllerTest extends TestCase
 
         }
 
-        $userData = AttendanceRecord::getMonthUserData($firstOfThisMonth->format('Y-m-d'), $endOfThisMonth->format('Y-m-d'), $user);
+        $userData = AttendanceRecord::getMonthUserData($today, $user);
         $response = $this->actingAs($user)->get('/attendance/list');
 
         $response->assertViewHas('formattedAttendanceRecords',
@@ -789,7 +789,7 @@ class AttendanceControllerTest extends TestCase
         $response->assertViewHas('nextMonth');
         $response->assertViewHas('date');
         $response->assertViewHas('formattedAttendanceRecords');
-        $response->assertSee($formatThisMonth);
+        $response->assertSee($formatThisMonth . '(' . jpWeekday($thisMonth->dayOfWeek) . ')');
         $response->assertSee($formatThisYm);
 
         $response->assertDontSee($formatLastMonth);
