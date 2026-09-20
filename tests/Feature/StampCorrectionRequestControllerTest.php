@@ -179,4 +179,162 @@ class StampCorrectionRequestControllerTest extends TestCase
         $nextPage->assertSee($now->format('m月d日'));
         $nextPage->assertStatus(200);
     }
+
+    /** @test */
+    public function 管理者の承認待ちの画面に修正申請が全て表示されている()
+    {
+        $cnt = 0;
+        $users = User::factory()->create();
+        $admin = User::factory()->create();
+        $now = CarbonImmutable::now();
+
+        for ($day = $now->firstOfMonth(); $day->lte($now); $day = $day->addDay()) {
+            $attendanceRecord = AttendanceRecord::factory()->create([
+                'user_id' => 1,
+                'date' => $day->format('Y-m-d'),
+            ]);
+            if ($day == $now->firstOfMonth()) {
+                $attendanceRecord->attendanceCorrectRequests()->create([
+                    'comment' => 'test',
+                    'status' => 2,
+                ]);
+            } else {
+                $attendanceRecord->attendanceCorrectRequests()->create([
+                    'comment' => 'test',
+                    'status' => 1,
+                ]);
+            }
+        }
+
+        $pendingData = AttendanceCorrectRequest::where('status', 1)->get();
+
+        $response = $this->actingAs($admin)->get('/stamp_correction_request/list');
+
+        $response->assertStatus(200);
+        $response->assertViewHas('applications', function ($applications) use ($pendingData, $cnt) {
+            foreach ($applications as $application) {
+                if ($application->approval_status == '承認待ち') {
+                    $cnt++;
+                }
+            }
+
+            return $pendingData->count() == $cnt;
+        });
+    }
+
+    /** @test */
+    public function 管理者の承認済みの画面に修正申請が全て表示されている()
+    {
+        $cnt = 0;
+        $users = User::factory()->create();
+        $admin = User::factory()->create();
+        $now = CarbonImmutable::now();
+
+        for ($day = $now->firstOfMonth(); $day->lte($now); $day = $day->addDay()) {
+            $attendanceRecord = AttendanceRecord::factory()->create([
+                'user_id' => 1,
+                'date' => $day->format('Y-m-d'),
+            ]);
+            if ($day == $now->firstOfMonth()) {
+                $attendanceRecord->attendanceCorrectRequests()->create([
+                    'comment' => 'test',
+                    'status' => 1,
+                ]);
+            } else {
+                $attendanceRecord->attendanceCorrectRequests()->create([
+                    'comment' => 'test',
+                    'status' => 2,
+                ]);
+            }
+        }
+
+        $approvedData = AttendanceCorrectRequest::where('status', '<>', 1)->get();
+
+        $response = $this->actingAs($admin)->get('/stamp_correction_request/list');
+
+        $response->assertStatus(200);
+        $response->assertViewHas('applications', function ($applications) use ($approvedData, $cnt) {
+            foreach ($applications as $application) {
+                if ($application->approval_status == '承認済み') {
+                    $cnt++;
+                }
+            }
+
+            return $approvedData->count() == $cnt;
+        });
+    }
+
+    /** @test */
+    public function 管理者の修正申請の画面に修正申請の詳細内容が正しく表示されている()
+    {
+        $user = User::factory()->create();
+        $admin = User::factory()->create();
+
+        $attendanceRecord = AttendanceRecord::factory()->create([
+            'user_id' => $user->id,
+            'date' => date('Y-m-d'),
+        ]);
+        $attendanceCorrectRequest = $attendanceRecord->attendanceCorrectRequests()->create([
+            'comment' => 'test',
+        ]);
+        $attendanceCorrectRequest->clockCorrectRequest()->create([
+            'new_clock_in' => '09:00',
+            'new_clock_out' => '17:00',
+        ]);
+        $attendanceCorrectRequest->breakCorrectRequests()->create([
+            'new_break_in' => '12:00',
+            'new_break_out' => '13:00',
+        ]);
+
+        $response = $this->actingAs($admin)->get('/stamp_correction_request/approve/' . $attendanceCorrectRequest->id);
+
+        $response->assertStatus(200);
+        $response->assertSee('09:00');
+        $response->assertSee('17:00');
+        $response->assertSee('12:00');
+        $response->assertSee('13:00');
+        $response->assertSee('test');
+        $response->assertSee($user->name);
+    }
+
+    /** @test */
+    public function 管理者が行った修正申請の承認処理が正しく行われる()
+    {
+        $user = User::factory()->create();
+        $admin = User::factory()->create();
+
+        $attendanceRecord = AttendanceRecord::factory()->create([
+            'user_id' => $user->id,
+            'date' => date('Y-m-d'),
+        ]);
+        $attendanceCorrectRequest = $attendanceRecord->attendanceCorrectRequests()->create([
+            'comment' => 'test',
+        ]);
+        $attendanceCorrectRequest->clockCorrectRequest()->create([
+            'new_clock_in' => '09:00',
+            'new_clock_out' => '17:00',
+        ]);
+        $attendanceCorrectRequest->breakCorrectRequests()->create([
+            'new_break_in' => '12:00',
+            'new_break_out' => '13:00',
+        ]);
+
+        $response = $this->actingAs($admin)->post('/stamp_correction_request/approve/' . $attendanceCorrectRequest->id);
+
+        $response->assertRedirect('/stamp_correction_request/approve/' . $attendanceCorrectRequest->id);
+        $this->assertDatabaseHas('attendance_records', [
+            'id' => $attendanceRecord->id,
+            'comment' => 'test',
+        ]);
+        $this->assertDatabaseHas('clock_records', [
+            'attendance_record_id' => $attendanceRecord->id,
+            'clock_in' => '09:00',
+            'clock_out' => '17:00',
+        ]);
+        $this->assertDatabaseHas('break_records', [
+            'attendance_record_id' => $attendanceRecord->id,
+            'break_in' => '12:00',
+            'break_out' => '13:00',
+        ]);
+    }
 }

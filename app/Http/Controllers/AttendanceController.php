@@ -7,6 +7,7 @@ use App\Http\Requests\AttendanceStoreRequest;
 use App\Http\Requests\CorrectStoreRequest;
 use App\Models\AttendanceRecord;
 use App\Services\AttendanceService;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -26,8 +27,10 @@ class AttendanceController extends Controller
     public function create(): View
     {
         $user = auth()->user();
-        $formattedDate = date('Y年n月j日', strtotime('today'));
-        $formattedTime = now()->format('H:i');
+        $now = CarbonImmutable::now();
+
+        $formattedDate = $now->format('Y年n月j日');
+        $formattedTime = timeFormat($now);
 
         return view('user.attendance-register', compact('user', 'formattedDate', 'formattedTime'));
     }

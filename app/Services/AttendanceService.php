@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\AttendanceRecord;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class AttendanceService
 {
@@ -16,10 +15,7 @@ class AttendanceService
             $user = auth()->user();
         }
 
-        $startDay = getFirstOfMonth($date)->format('Y-m-d');
-        $endDay = getEndOfMonth($date)->format('Y-m-d');
-
-        $attendances = AttendanceRecord::getMonthUserData($startDay, $endDay, $user);
+        $attendances = AttendanceRecord::getMonthUserData($date, $user);
 
         if ($attendances->count() <= 0) {
             return $formattedAttendanceRecords;
@@ -88,7 +84,7 @@ class AttendanceService
         $data = [];
 
         $clockRecord = $attendance->clockRecord;
-        Log::debug($attendance);
+
         $tmpClockIn = timeFormat($clockRecord->clock_in);
         $tmpClockOut = timeFormat($clockRecord->clock_out);
 

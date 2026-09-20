@@ -92,7 +92,6 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
         // リクエストにdateがあれば、バリデート済みのdateを使用、
         // なければ今日の日付を使用
-
         $date = dateFormat(date('Y-m-d'));
 
         if (array_key_exists('date', $request->validated())) {

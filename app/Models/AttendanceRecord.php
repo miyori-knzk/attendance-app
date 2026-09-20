@@ -18,15 +18,18 @@ class AttendanceRecord extends Model
         'comment',
     ];
 
-    public static function getMonthUserData($startDay, $endDay, $user = null)
+    public static function getMonthUserData($date, $user = null)
     {
         if ($user === null) {
             $user = auth()->user();
         }
 
+        $firstOfMonth = $date->firstOfMonth()->format('Y-m-d');
+        $endOfMonth = $date->endOfMonth()->format('Y-m-d');
+
         return self::where('user_id', $user->id)
-            ->where('date', '>=', $startDay)
-            ->where('date', '<=', $endDay)
+            ->where('date', '>=', $firstOfMonth)
+            ->where('date', '<=', $endOfMonth)
             ->with('clockRecord', 'breakRecords')
             ->orderBy('date')
             ->get();
