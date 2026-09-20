@@ -2,10 +2,10 @@
 
 use Carbon\CarbonImmutable;
 
-function hiToTime($val)
+function hisToHi($val)
 {
-    if (is_string($val) && preg_match('/^\d{2}:\d{2}$/', $val)) {
-        return CarbonImmutable::createFromFormat('H:i', $val)->format('H:i:s');
+    if (is_string($val) && preg_match('/^\d{2}:\d{2}:00$/', $val)) {
+        return CarbonImmutable::parse($val)->format('H:i');
     }
 
     return $val;

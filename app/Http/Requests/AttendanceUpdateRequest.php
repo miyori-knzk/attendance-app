@@ -24,10 +24,10 @@ class AttendanceUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'new_clock_in' => 'required|date_format:H:i',
-            'new_clock_out' => 'required|date_format:H:i',
-            'new_break_in.*' => 'nullable|date_format:H:i',
-            'new_break_out.*' => 'nullable|date_format:H:i',
+            'new_clock_in' => 'required|regex:/^\d{2}:\d{2}(:\d{2})?$/',
+            'new_clock_out' => 'required|regex:/^\d{2}:\d{2}(:\d{2})?$/',
+            'new_break_in.*' => 'nullable|regex:/^\d{2}:\d{2}(:\d{2})?$/',
+            'new_break_out.*' => 'nullable|regex:/^\d{2}:\d{2}(:\d{2})?$/',
             'comment' => 'required|max:255',
         ];
     }
@@ -45,8 +45,8 @@ class AttendanceUpdateRequest extends FormRequest
                 return;
             }
 
-            $clockInTime = CarbonImmutable::createFromFormat('H:i', mb_convert_kana($clockIn, 'ask'));
-            $clockOutTime = CarbonImmutable::createFromFormat('H:i', mb_convert_kana($clockOut, 'ask'));
+            $clockInTime = CarbonImmutable::parse(mb_convert_kana($clockIn, 'ask'))->setSecond(0);
+            $clockOutTime = CarbonImmutable::parse(mb_convert_kana($clockOut, 'ask'))->setSecond(0);
 
             if ($clockOutTime->lessThan($clockInTime)) {
                 $validator->errors()->add('new_clock_out', '出勤時間もしくは退勤時間が不適切な値です');
@@ -70,12 +70,8 @@ class AttendanceUpdateRequest extends FormRequest
                     $validator->errors()->add("new_break_in.$key", '休憩の入りと戻りはセットで入力してください');
                 }
 
-                if (! preg_match('/^\d{2}:\d{2}$/', $bI) || ! preg_match('/^\d{2}:\d{2}$/', $bO)) {
-                    return;
-                }
-
-                $bITime = CarbonImmutable::createFromFormat('H:i', $bI);
-                $bOTime = CarbonImmutable::createFromFormat('H:i', $bO);
+                $bITime = CarbonImmutable::parse(mb_convert_kana($bI, 'ask'))->setSecond(0);
+                $bOTime = CarbonImmutable::parse(mb_convert_kana($bO, 'ask'))->setSecond(0);
 
                 if ($preBO && $bITime->lessThan($preBO)) {
                     $validator->errors()->add("new_break_in.$key", '休憩は前の休憩戻りより後に開始してください');
@@ -98,10 +94,6 @@ class AttendanceUpdateRequest extends FormRequest
         return [
             'new_clock_in.required' => '出勤時間は必須です',
             'new_clock_out.required' => '退勤時間は必須です',
-            'new_clock_in.date_format' => '出勤時間はH:i形式(例：21：05)で入力してください',
-            'new_clock_out.date_format' => '退勤時間はH:i形式(例：21：05)で入力してください',
-            'new_break_in.*.date_format' => '休憩入時間はH:i形式(例：21：05)で入力してください',
-            'new_break_out.*.date_format' => '休憩戻時間はH:i形式(例：21：05)で入力してください',
             'comment.required' => '備考を記入してください',
             'comment.max' => '備考は255文字以内で入力してください',
         ];

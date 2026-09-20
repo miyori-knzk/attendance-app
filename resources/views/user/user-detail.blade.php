@@ -35,9 +35,9 @@
                     <div class="form__group">
                         <label class="form__header" for="new_clock_in">出勤・退勤</label>
                         <div class="form__input-group">
-                            <input class="form__input" id="new_clock_in" type="text" name="new_clock_in" value="{{ $data['clock_in'] }}">
+                            <input class="form__input" id="new_clock_in" type="time" step="60" name="new_clock_in" value="{{ $data['clock_in'] }}">
                             <p>〜</p>
-                            <input class="form__input" type="text" name="new_clock_out" value="{{ $data['clock_out'] }}">
+                            <input class="form__input" type="time" step="60" name="new_clock_out" value="{{ $data['clock_out'] }}">
                         </div>
                     </div>
 
@@ -54,9 +54,9 @@
                         <div class="form__group">
                             <label class="form__header">{{ $index === 0 ? '休憩' : '休憩' . ($index + 1) }}</label>
                             <div class="form__input-group">
-                                <input class="form__input" type="text" name="new_break_in[{{ $index }}]" value="{{ $break['break_in'] }}">
+                                <input class="form__input" type="time" step="60" name="new_break_in[{{ $index }}]" value="{{ $break['break_in'] }}">
                                 <p>〜</p>
-                                <input class="form__input" type="text" name="new_break_out[{{ $index }}]" value="{{ $break['break_out'] }}">
+                                <input class="form__input" type="time" step="60" name="new_break_out[{{ $index }}]" value="{{ $break['break_out'] }}">
                             </div>
                         </div>
                         <div class="error-message">
@@ -72,9 +72,9 @@
                     <div class="form__group">
                         <label class="form__header">{{ $newBreakIndex === 0 ? '休憩' : '休憩' . ($newBreakIndex + 1) }}</label>
                         <div class="form__input-group">
-                            <input class="form__input" type="text" name="new_break_in[{{ $newBreakIndex }}]" value="">
+                            <input class="form__input" type="time" step="60" name="new_break_in[{{ $newBreakIndex }}]" value="">
                             <p>〜</p>
-                            <input class="form__input" type="text" name="new_break_out[{{ $newBreakIndex }}]" value="">
+                            <input class="form__input" type="time" step="60" name="new_break_out[{{ $newBreakIndex }}]" value="">
                         </div>
                     </div>
                     <div class="error-message">
@@ -128,9 +128,9 @@
                     <div class="form__group">
                         <label class="form__header">出勤・退勤</label>
                         <div class="form__input-group">
-                            <input class="form__input readonly" type="text" value="{{ $data['clock_in'] }}" readonly>
+                            <input class="form__input readonly" type="time" step="60" value="{{ $data['clock_in'] }}" readonly>
                             <p>〜</p>
-                            <input class="form__input readonly" type="text" value="{{ $data['clock_out'] }}" readonly>
+                            <input class="form__input readonly" type="time" step="60" value="{{ $data['clock_out'] }}" readonly>
                         </div>
                     </div>
 
@@ -139,10 +139,10 @@
                         <div class="form__group">
                             <label class="form__header">{{ $index === 0 ? '休憩' : '休憩' . ($index + 1) }}</label>
                             <div class="form__input-group">
-                                <input class="form__input readonly" type="text" name="new_break_in[]"
+                                <input class="form__input readonly" type="time" step="60" name="new_break_in[]"
                                     value="{{ $break['break_in'] }}" readonly>
                                 <p>〜</p>
-                                <input class="form__input readonly" type="text" name="new_break_out[]"
+                                <input class="form__input readonly" type="time" step="60" name="new_break_out[]"
                                     value="{{ $break['break_out'] }}" readonly>
                             </div>
                         </div>

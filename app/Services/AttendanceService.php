@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AttendanceRecord;
+use App\Models\BreakRecord;
 use Illuminate\Support\Facades\DB;
 
 class AttendanceService
@@ -188,17 +189,21 @@ class AttendanceService
 
     public function saveRequestRecord($request, $attendanceRecord)
     {
+        $clockArr = [];
         $validated = $request->validated();
+
+        $clockArr['new_clock_in'] = hisToHi($validated['new_clock_in']);
+        $clockArr['new_clock_out'] = hisToHi($validated['new_clock_out']);
 
         $breakIn = $validated['new_break_in'];
         $breakOut = $validated['new_break_out'];
 
         $breakArr = $this->makeBreakArr($breakIn, $breakOut, 'new_');
 
-        DB::connection()->transaction(function () use ($validated, $breakArr, $attendanceRecord) {
+        DB::connection()->transaction(function () use ($validated, $breakArr, $attendanceRecord, $clockArr) {
 
             $correctRequest = $attendanceRecord->attendanceCorrectRequests()->create($validated);
-            $correctRequest->clockCorrectRequest()->create($validated);
+            $correctRequest->clockCorrectRequest()->create($clockArr);
 
             if (count($breakArr) > 0) {
                 foreach ($breakArr as $break) {
@@ -345,7 +350,7 @@ class AttendanceService
 
             if (! $existData && $objFixData) {
                 BreakRecord::create([
-                    'attendance_record_id' => $attendance->id,
+                    'attendance_record_id' => $attendanceRecord->id,
                     'break_in' => $objFixData->break_in,
                     'break_out' => $objFixData->break_out,
                 ]);
