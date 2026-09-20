@@ -24,10 +24,10 @@ class CorrectStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'new_clock_in' => 'required|date_format:H:i',
-            'new_clock_out' => 'required|date_format:H:i',
-            'new_break_in.*' => 'nullable|date_format:H:i',
-            'new_break_out.*' => 'nullable|date_format:H:i',
+            'new_clock_in' => 'required|regex:/^\d{2}:\d{2}(:\d{2})?$/',
+            'new_clock_out' => 'required|regex:/^\d{2}:\d{2}(:\d{2})?$/',
+            'new_break_in.*' => 'nullable|regex:/^\d{2}:\d{2}(:\d{2})?$/',
+            'new_break_out.*' => 'nullable|regex:/^\d{2}:\d{2}(:\d{2})?$/',
             'comment' => 'required|max:255',
         ];
     }
@@ -45,8 +45,8 @@ class CorrectStoreRequest extends FormRequest
                 return;
             }
 
-            $clockInTime = CarbonImmutable::createFromFormat('H:i', mb_convert_kana($clockIn, 'ask'));
-            $clockOutTime = CarbonImmutable::createFromFormat('H:i', mb_convert_kana($clockOut, 'ask'));
+            $clockInTime = CarbonImmutable::parse($clockIn)->format('H:i');
+            $clockOutTime = CarbonImmutable::parse($clockOut)->format('H:i');
 
             if ($clockOutTime->lessThan($clockInTime)) {
                 $validator->errors()->add('new_clock_out', '出勤時間もしくは退勤時間が不適切な値です');
@@ -70,12 +70,8 @@ class CorrectStoreRequest extends FormRequest
                     $validator->errors()->add("new_break_in.$key", '休憩の入りと戻りはセットで入力してください');
                 }
 
-                if (! preg_match('/^\d{2}:\d{2}$/', $bI) || ! preg_match('/^\d{2}:\d{2}$/', $bO)) {
-                    return;
-                }
-
-                $bITime = CarbonImmutable::createFromFormat('H:i', $bI);
-                $bOTime = CarbonImmutable::createFromFormat('H:i', $bO);
+                $bITime = CarbonImmutable::parse($bI)->formmat('H:i');
+                $bOTime = CarbonImmutable::parse($bO)->formmat('H:i');
 
                 if ($preBO && $bITime->lessThan($preBO)) {
                     $validator->errors()->add("new_break_in.$key", '休憩は前の休憩戻りより後に開始してください');

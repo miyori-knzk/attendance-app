@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AttendanceIndexRequest;
 use App\Http\Requests\AttendanceStoreRequest;
-use App\Http\Requests\CorrectStoreRequest;
+use App\Http\Requests\AttendanceUpdateRequest;
 use App\Models\AttendanceRecord;
 use App\Services\AttendanceService;
 use Carbon\CarbonImmutable;
@@ -110,7 +110,7 @@ class AttendanceController extends Controller
      *
      * @throws ModelNotFoundException // AttendanceRecord が見つからない場合
      */
-    public function requestStore(CorrectStoreRequest $request, $id)
+    public function requestStore(AttendanceUpdateRequest $request, $id)
     {
         $attendanceRecord = AttendanceRecord::findOrFail($id);
         $this->attendanceService->saveRequestRecord($request, $attendanceRecord);

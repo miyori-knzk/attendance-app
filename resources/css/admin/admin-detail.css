@@ -1,7 +1,7 @@
 /* ───────────────────────────────────────────────────────────────── */
 /* 全体レイアウト */
 .detail__content {
-    background: #F0EFF2;
+    background: #f0eff2;
     margin: 0 auto;
     max-width: 1540px;
     padding: 50px;
@@ -20,8 +20,8 @@
 }
 
 .form__content {
-    background: #FFF;
-    border: 1px solid #E1E1E1;
+    background: #fff;
+    border: 1px solid #e1e1e1;
     border-radius: 10px;
 }
 
@@ -38,7 +38,7 @@
 }
 
 .form__group:not(:first-of-type) {
-    border-top: 2px solid #E1E1E1;
+    border-top: 2px solid #e1e1e1;
 }
 
 /* ラベル側 */
@@ -68,7 +68,7 @@
 
 .form__input,
 .form__textarea {
-    border: 1px solid #E1E1E1;
+    border: 1px solid #e1e1e1;
     border-radius: 4px;
     font-weight: bold;
 }
@@ -77,8 +77,8 @@
     height: 30px;
     padding: 5px;
     text-align: center;
-    width: 80px;
-    min-width: 80px;
+    width: 90px;
+    min-width: 90px;
 }
 
 .form__textarea {
@@ -104,7 +104,7 @@
     background: #000;
     border-radius: 5px;
     border: none;
-    color: #FFF;
+    color: #fff;
     font-size: 16px;
     font-weight: bold;
     padding: 8px 35px;
@@ -118,8 +118,8 @@
 }
 
 .applied-form__content {
-    background: #FFF;
-    border: 1px solid #E1E1E1;
+    background: #fff;
+    border: 1px solid #e1e1e1;
     border-radius: 10px;
 }
 
@@ -132,7 +132,7 @@
 }
 
 .applied-form__group:not(:last-of-type) {
-    border-bottom: 2px solid #E1E1E1;
+    border-bottom: 2px solid #e1e1e1;
 }
 
 .applied-form__header {
@@ -154,7 +154,7 @@
 
 .applied-form__input,
 .applied-form__textarea {
-    border: 1px solid #E1E1E1;
+    border: 1px solid #e1e1e1;
     border-radius: 4px;
     font-weight: bold;
 }
@@ -183,13 +183,13 @@
 }
 
 .applied-form__text--item {
-    color: #FF0000;
+    color: #ff0000;
 }
 
 /* ───────────────────────────────────────────────────────────────── */
 /* バリデーション・メッセージ */
 .error-message {
-    color: #FF0000;
+    color: #ff0000;
     margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
@@ -207,7 +207,7 @@
 
 .readonly-message::before {
     color: rgba(255, 0, 0, 0.5);
-    content: '*';
+    content: "*";
     font-weight: bold;
 }
 
