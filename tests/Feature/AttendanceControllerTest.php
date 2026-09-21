@@ -235,7 +235,7 @@ class AttendanceControllerTest extends TestCase
         ]);
         ClockRecord::factory()->create([
             'attendance_record_id' => $attendanceRecord->id,
-            'clock_in' => '09:00',
+            'clock_in' => '09:00:00',
             'clock_out' => null,
         ]);
 
@@ -507,14 +507,15 @@ class AttendanceControllerTest extends TestCase
         ]);
         ClockRecord::factory()->create([
             'attendance_record_id' => $attendanceRecord->id,
-            'clock_in' => '09:00',
-            'clock_out' => '17:30',
+            'clock_in' => '09:00:00',
+            'clock_out' => '17:30:00',
         ]);
 
         $response = $this->actingAs($user)->get('/attendance/list');
 
         $response->assertSee($date->format('m/d'));
         $response->assertSee('17:30');
+        // $response->assertViewHas('formattedAttendanceRecords');
     }
 
     /** @test */

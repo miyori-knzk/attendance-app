@@ -4,9 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\AttendanceRecord;
 use App\Models\User;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class AdminControllerTest extends TestCase
@@ -28,13 +28,23 @@ class AdminControllerTest extends TestCase
         ]);
 
         $attendanceRecord1->clockRecord()->create([
-            'clock_in' => '09:00',
-            'clock_out' => '17:30',
+            'clock_in' => '09:00:00',
+            'clock_out' => '17:30:00',
         ]);
 
         $attendanceRecord1->breakRecords()->create([
-            'break_in' => '12:00',
-            'break_out' => '12:45',
+            'break_in' => '10:30:00',
+            'break_out' => '10:35:00',
+        ]);
+
+        $attendanceRecord1->breakRecords()->create([
+            'break_in' => '12:00:00',
+            'break_out' => '12:45:00',
+        ]);
+
+        $attendanceRecord1->breakRecords()->create([
+            'break_in' => '15:00:00',
+            'break_out' => '15:10:00',
         ]);
 
         $attendanceRecord2 = AttendanceRecord::factory()->create([
@@ -43,13 +53,13 @@ class AdminControllerTest extends TestCase
         ]);
 
         $attendanceRecord2->clockRecord()->create([
-            'clock_in' => '09:30',
-            'clock_out' => '18:00',
+            'clock_in' => '09:30:00',
+            'clock_out' => '18:00:00',
         ]);
 
         $attendanceRecord2->breakRecords()->create([
-            'break_in' => '13:00',
-            'break_out' => '14:00',
+            'break_in' => '13:00:00',
+            'break_out' => '14:00:00',
         ]);
 
         $attendanceRecord3 = AttendanceRecord::factory()->create([
@@ -58,13 +68,13 @@ class AdminControllerTest extends TestCase
         ]);
 
         $attendanceRecord3->clockRecord()->create([
-            'clock_in' => '09:00',
-            'clock_out' => '17:30',
+            'clock_in' => '09:00:00',
+            'clock_out' => '17:30:00',
         ]);
 
         $attendanceRecord3->breakRecords()->create([
-            'break_in' => '12:00',
-            'break_out' => '12:45',
+            'break_in' => '12:00:00',
+            'break_out' => '12:45:00',
         ]);
 
         $response = $this->actingAs($admin)->get('/admin/attendance/list');
@@ -74,18 +84,16 @@ class AdminControllerTest extends TestCase
         $response->assertViewHas('attendanceRecords', function ($attendanceRecords) use ($formatDate) {
             $cnt = 0;
             foreach ($attendanceRecords as $att) {
-                Log::debug($att->clock_in);
-
                 if ($cnt == 0) {
                     if ($att->date == $formatDate && $att->clock_in == '09:00'
-                        && $att->clock_out == '17:30' && $att->total_break_time == 45
-                        && $att->total_time == 465) {
+                        && $att->clock_out == '17:30' && Carbon::parse($att->total_break_time)->format('G:i') == '1:00'
+                        && Carbon::parse($att->total_time)->format('G:i') == '7:30') {
                         $cnt++;
                     }
                 } else {
                     if ($att->date == $formatDate && $att->clock_in == '09:30'
-                        && $att->clock_out == '18:00' && $att->total_break_time == 60
-                        && $att->total_time == 450) {
+                        && $att->clock_out == '18:00' && Carbon::parse($att->total_break_time)->format('G:i') == '1:00'
+                        && Carbon::parse($att->total_time)->format('G:i') == '7:30') {
                         $cnt++;
                     }
                 }
@@ -384,12 +392,12 @@ class AdminControllerTest extends TestCase
                 'date' => $day->format('Y-m-d'),
             ]);
             $attendanceRecord->clockRecord()->create([
-                'clock_in' => '09:00',
-                'clock_out' => '17:00',
+                'clock_in' => '09:00:00',
+                'clock_out' => '17:00:00',
             ]);
             $attendanceRecord->breakRecords()->create([
-                'break_in' => '12:00',
-                'break_out' => '13:00',
+                'break_in' => '12:00:00',
+                'break_out' => '13:00:00',
             ]);
         }
 
@@ -402,8 +410,8 @@ class AdminControllerTest extends TestCase
                 $tmpDate = dateFormat($attendanceRecords[$key]->date);
                 $formatDate = $tmpDate->format('m/d') . '(' . jpWeekday($tmpDate->dayOfWeek) . ')';
                 if ($val['date'] == $formatDate && $val['clock_in'] == '09:00'
-                        && $val['clock_out'] == '17:00' && $val['total_break_time'] == 60
-                        && $val['total_time'] == 420) {
+                        && $val['clock_out'] == '17:00' && Carbon::parse($val['total_break_time'])->format('G:i') == '1:00'
+                        && Carbon::parse($val['total_time'])->format('G:i') == '7:00') {
                     $cnt++;
                 }
             }
