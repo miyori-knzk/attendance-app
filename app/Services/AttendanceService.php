@@ -35,8 +35,8 @@ class AttendanceService
                 'date' => $attDay->format('m/d') . '(' . jpWeekday($tmpDayOfWeek) . ')',
                 'clock_in' => dateTimeToHi($tmpClocks['tmpClockIn']),
                 'clock_out' => dateTimeToHi($tmpClocks['tmpClockOut']),
-                'total_break_time' => $breakSum,
-                'total_time' => $totalTime,
+                'total_break_time' => $breakSum * 60,
+                'total_time' => $totalTime * 60,
                 'id' => $attendance->id,
             ];
         }
@@ -69,10 +69,11 @@ class AttendanceService
                 'date' => $attDay->format('m/d') . '(' . jpWeekday($tmpDayOfWeek) . ')',
                 'clock_in' => dateTimeToHi($tmpClocks['tmpClockIn']),
                 'clock_out' => dateTimeToHi($tmpClocks['tmpClockOut']),
-                'total_break_time' => $breakSum,
-                'total_time' => $totalTime,
+                'total_break_time' => $breakSum * 60,
+                'total_time' => $totalTime * 60,
                 'id' => $attendance->id,
             ];
+
         }
 
         $attendanceColl = collect($attendanceRecords)->map(fn ($item) => (object) $item);
@@ -116,6 +117,7 @@ class AttendanceService
             } else {
                 $difMin = 0;
             }
+
             $breakSum = $breakSum + $difMin;
         }
 

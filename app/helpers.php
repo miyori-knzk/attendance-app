@@ -4,7 +4,7 @@ use Carbon\CarbonImmutable;
 
 function hisToHi($val)
 {
-    if (is_string($val) && preg_match('/^\d{2}:\d{2}:00$/', $val)) {
+    if (is_string($val) && preg_match('/^\d{2}:\d{2}:\d{2}$/', $val)) {
         return CarbonImmutable::parse($val)->format('H:i');
     }
 
@@ -52,7 +52,7 @@ function timeFormat($val)
     }
 
     try {
-        return CarbonImmutable::createFromFormat('H:i', $val);
+        return CarbonImmutable::createFromFormat('H:i:s', $val);
     } catch (Exception $e) {
         return null;
     }
