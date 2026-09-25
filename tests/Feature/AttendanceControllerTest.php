@@ -38,7 +38,7 @@ class AttendanceControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee($now->format('Y年n月j日'));
-        $response->assertSee(timeFormat($now));
+        $response->assertSee($now->format('H:i'));
     }
 
     /** @test */
