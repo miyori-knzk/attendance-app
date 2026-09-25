@@ -3,12 +3,20 @@
 namespace App\Services;
 
 use App\Models\AttendanceCorrectRequest;
+use App\Models\AttendanceRecord;
 use App\Models\BreakRecord;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 class StampCorrectionRequestService
 {
-    public function formatUsersAppData($applications, $user)
+    /**
+     * 特定のユーザーの修正申請のみフォーマット
+     *
+     * @param  Collection  $application
+     */
+    public function formatUsersAppData(Collection $applications, User $user): array
     {
         $formattedApplications = [];
 
@@ -28,7 +36,10 @@ class StampCorrectionRequestService
         return $formattedApplications;
     }
 
-    public function approve($attendanceCorrectRequestId)
+    /**
+     * 管理者の申請承認処理
+     */
+    public function approve(int $attendanceCorrectRequestId): void
     {
         $application = AttendanceCorrectRequest::findOrFail($attendanceCorrectRequestId);
         $breakCorrectRequests = $application->breakCorrectRequests()->orderBy('new_break_in')->get();
@@ -43,7 +54,10 @@ class StampCorrectionRequestService
         });
     }
 
-    public function updateClockRecord($attendance, $application)
+    /**
+     * 出退勤レコードの登録・更新
+     */
+    public function updateClockRecord(AttendanceRecord $attendance, AttendanceCorrectRequest $application): void
     {
         $attendance->clockRecord()->updateOrCreate([
             'clock_in' => $application->new_clock_in,
@@ -51,7 +65,10 @@ class StampCorrectionRequestService
         ]);
     }
 
-    public function updateBreakRecord($attendanceRecordId, $breakRecords, $breakCorrectRequests)
+    /**
+     * 休憩レコードの登録・更新
+     */
+    public function updateBreakRecord(int $attendanceRecordId, Collection $breakRecords, Collection $breakCorrectRequests): void
     {
         $max = max($breakRecords->count(), $breakCorrectRequests->count());
 

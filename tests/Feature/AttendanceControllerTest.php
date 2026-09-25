@@ -970,8 +970,8 @@ class AttendanceControllerTest extends TestCase
 
         BreakRecord::factory()->create([
             'attendance_record_id' => $attendanceRecord->id,
-            'break_in' => '15:00',
-            'break_out' => '15:10',
+            'break_in' => '15:00:00',
+            'break_out' => '15:10:00',
         ]);
 
         $response = $this->actingAs($user)->get('/attendance/detail/' . $attendanceRecord->id);

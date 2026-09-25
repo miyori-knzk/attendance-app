@@ -45,17 +45,28 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+    /**
+     * 勤怠レコードを取得
+     */
     public function attendanceRecords(): HasMany
     {
         return $this->hasMany(AttendanceRecord::class);
     }
 
+    /**
+     * 対象日付の勤怠レコードを取得
+     *
+     * @return Illuminate\Database\Eloquent\Relations\HasOne
+     */
     public function todayAttendance(): HasOne
     {
         return $this->hasOne(AttendanceRecord::class)
             ->whereDate('date', date('Y-m-d'));
     }
 
+    /**
+     * 出退勤登録時のステータスを表示
+     */
     public function getAttendanceStatusAttribute(): string
     {
         $todayAttndance = $this->todayAttendance;

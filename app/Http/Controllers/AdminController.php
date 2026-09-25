@@ -7,14 +7,15 @@ use App\Http\Requests\AttendanceUpdateRequest;
 use App\Http\Requests\StaffAttendanceListRequest;
 use App\Models\User;
 use App\Services\AttendanceService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class AdminController extends Controller
 {
-    private $attendanceService;
+    private AttendanceService $attendanceService;
 
     /**
-     * AttendanceController constructor.
+     * AdminController constructor
      *
      * @param  AttendanceService  $attendanceService  勤怠に関する処理をする
      */
@@ -28,12 +29,10 @@ class AdminController extends Controller
      *
      * @param  AdminIndexRequest  $request
      *                                      バリデーション済みで `date` キーがあればその日付、無ければ今日の日付を扱う。
-     * @return View
+     * @return \Illuminate\View\View;
      *              `admin.admin-attendance-list` ビューを返す。
-     *              ビューに渡される変数は `$date`, `$previousDay`, `$nextDay`, `$users`,
-     *              `$attendanceRecords` 。
      */
-    public function index(AdminIndexRequest $request)
+    public function index(AdminIndexRequest $request): View
     {
         $validated = $request->validated();
         $date = dateFormat(date('Y-m-d'));
@@ -58,7 +57,7 @@ class AdminController extends Controller
      * @return View
      *              'admin.admin-detail' ビューを返す
      */
-    public function edit(int $id)
+    public function edit(int $id): View
     {
         $attendanceRecord = $this->attendanceService->makeEditData($id);
         $user = User::findOrFail($attendanceRecord['user_id']);
@@ -69,10 +68,12 @@ class AdminController extends Controller
     /**
      * 管理者の勤怠詳細画面からの修正
      *
+     * @param  AttendanceUpdateRequest  $request
+     *                                            AttendanceUpdateRequestでバリデーション済みのリクエスト
      * @param  int  $id  AttenanceRecordのID
      * @return RedirectResponse 管理者の勤怠詳細画面にリダイレクト
      */
-    public function update(AttendanceUpdateRequest $request, int $id)
+    public function update(AttendanceUpdateRequest $request, int $id): RedirectResponse
     {
         $validated = $request->validated();
         $attendanceRecord = $this->attendanceService->updateAttendance($validated, $id);
@@ -85,9 +86,10 @@ class AdminController extends Controller
      *
      * @param  StaffAttendanceListRequest  $request
      *                                               StaffAttendanceListRequest でバリデーション済みのリクエスト
+     * @param int UserのID
      * @return View 'admin.staff-attendance-list'　へビューを返す
      */
-    public function staffAttendance(StaffAttendanceListRequest $request, $id)
+    public function staffAttendance(StaffAttendanceListRequest $request, int $id): View
     {
         $user = User::findOrFail($id);
         // リクエストにdateがあれば、バリデート済みのdateを使用、
@@ -111,7 +113,7 @@ class AdminController extends Controller
      *
      * @return View 'admin.staff-list' へビューを返す
      */
-    public function staffIndex()
+    public function staffIndex(): View
     {
         $users = User::all();
 

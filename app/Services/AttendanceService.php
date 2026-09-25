@@ -2,13 +2,24 @@
 
 namespace App\Services;
 
+use App\Http\Requests\AttendanceUpdateRequest;
 use App\Models\AttendanceRecord;
 use App\Models\BreakRecord;
+use App\Models\User;
+use Carbon\Carbon;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class AttendanceService
 {
-    public function formatAttDatas($date, $user = null)
+    /**
+     * 勤怠一覧画面に表示する際のデータをフォーマット
+     *
+     * @param  CarbonImmutable  $date  指定された日付が属する月を表示　'Y-m-d'形式
+     * @param  User|null  $user  指定なしの場合はログインユーザーを対象にする
+     */
+    public function formatAttDatas(CarbonImmutable $date, ?User $user = null): array
     {
         $formattedAttendanceRecords = [];
 
@@ -44,7 +55,13 @@ class AttendanceService
         return $formattedAttendanceRecords;
     }
 
-    public function attDatasCollection($date)
+    /**
+     * 管理者の勤怠一覧画面で表示する際のデータをCollection形式でフォーマット
+     *
+     * @param  string  $date  指定された日付が属する月を表示　'Y-m-d'形式
+     * @return \Illuminate\Support\Collection;
+     */
+    public function attDatasCollection(string $date): Collection
     {
         $attendanceRecords = [];
         $attendanceColl = collect();
@@ -81,7 +98,10 @@ class AttendanceService
         return $attendanceColl;
     }
 
-    public function calculateWorkTime($attendance)
+    /**
+     * 出退勤時間をフォーマットし、勤務時間を計算
+     */
+    public function calculateWorkTime(AttendanceRecord $attendance): array
     {
         $data = [];
 
@@ -103,7 +123,10 @@ class AttendanceService
         return $data;
     }
 
-    public function calculateBreakTime($attendance)
+    /**
+     * 休憩時間の合計を計算
+     */
+    public function calculateBreakTime(AttendanceRecord $attendance): int
     {
         $breakSum = 0;
         $breakRecords = $attendance->breakRecords()->get();
@@ -124,7 +147,10 @@ class AttendanceService
         return $breakSum;
     }
 
-    public function calculateTotalTime($breakSum, $workSum)
+    /**
+     * 休憩時間を引いた勤務時間を計算
+     */
+    public function calculateTotalTime(int $breakSum, int $workSum): ?int
     {
         if ($workSum < $breakSum) {
             return $tmpTotalTime = null;
@@ -133,7 +159,12 @@ class AttendanceService
         return $tmpTotalTime = $workSum - $breakSum;
     }
 
-    public function makeEditData($id)
+    /**
+     * 勤怠詳細画面に表示するデータをフォーマット
+     *
+     * @param  int  $id  AttendanceRecordのID
+     */
+    public function makeEditData(int $id): array
     {
 
         $attendanceRecord = AttendanceRecord::findOrFail($id);
@@ -153,30 +184,10 @@ class AttendanceService
         return $data;
     }
 
-    public function makePendingData($attendanceRecord)
-    {
-        $data = [];
-        $breaks = [];
-
-        $pendingRecord = $attendanceRecord->requestIsPending();
-        $clock_in = $pendingRecord->new_clock_in;
-        $clock_out = $pendingRecord->new_clock_in;
-        foreach ($pendingRecord->breakCorrectRequests()->get() as $break) {
-            $breaks[] = [
-                'break_in' => $break->new_break_in,
-                'break_out' => $break->new_break_out,
-            ];
-        }
-
-        $data['clock_in'] = $clock_in;
-        $data['clock_out'] = $clock_out;
-        $data['breaks'] = $breaks;
-        $data['comment'] = $pendingRecord->comment;
-
-        return $data;
-    }
-
-    public function makeAttendanceData($attendanceRecord)
+    /**
+     * 勤怠詳細画面の勤怠情報を配列にフォーマット
+     */
+    public function makeAttendanceData(AttendanceRecord $attendanceRecord): array
     {
         $data = [];
 
@@ -189,7 +200,12 @@ class AttendanceService
         return $data;
     }
 
-    public function saveRequestRecord($request, $attendanceRecord)
+    /**
+     * 修正申請を保存
+     *
+     * @param  AttendanceUpdateRequest  $request  バージョン済みのリクエスト
+     */
+    public function saveRequestRecord(AttendanceUpdateRequest $request, AttendanceRecord $attendanceRecord): void
     {
         $clockArr = [];
         $validated = $request->validated();
@@ -216,7 +232,14 @@ class AttendanceService
         });
     }
 
-    public function makeBreakArr($breakIn, $breakOut, $type = null)
+    /**
+     * 休憩の入戻をセットで配列に変換
+     *
+     * @param  array  $breakIn  休憩入の配列
+     * @param  array  $breakOut  休憩戻の配列
+     * @param  string|null  $type  修正申請の場合は'new_'を入れる
+     */
+    public function makeBreakArr(array $breakIn, array $breakOut, ?string $type = null): array
     {
         $breakArr = [];
 
@@ -233,19 +256,19 @@ class AttendanceService
     }
 
     /**
-     * 処理の概要
-     *   1. ユーザーの最新勤怠を取得し、その翌日を開始日とする。最新の勤怠が無ければユーザー作成日を開始日とする。
-     *   2. 出勤時に開始日から前日までにレコードがない日があればAttendanceRecordのみ作成。
-     *   3. 今日のレコードは $action に応じて clockrecord か breakrecords へ時間を保存。
+     * 出退勤、休憩の入戻登録処理
+     * 本日から前の出勤日の間にデータがなければAttendanceRecordのみ作成する
+     *
+     * @param  string  $action(clock_in,  clock_out, break_in, break_out)
      */
-    public function storeAttendanceRecord($action)
+    public function storeAttendanceRecord(string $action): void
     {
         $user = auth()->user();
-        $today = date('Y-m-d');
+        $today = CarbonImmutable::today();
 
         $attendance = AttendanceRecord::firstOrNew([
             'user_id' => $user->id,
-            'date' => $today,
+            'date' => $today->format('Y-m-d'),
         ]);
 
         $startDay = $this->getStartDay($user);
@@ -272,20 +295,26 @@ class AttendanceService
         });
     }
 
-    public function getStartDay($user)
+    /**
+     * 最新の勤怠レコードを取得、なければユーザー作成日を返す
+     */
+    public function getStartDay(User $user): Carbon|CarbonImmutable
     {
         $latestAtt = AttendanceRecord::getLatestAttendance($user);
 
         if ($latestAtt) {
-            $startDay = dateFormat($latestAtt->date)->addDay();
+            $startDay = dateFormat($latestAtt->date)->addDay()->startOfDay();
         } else {
-            $startDay = $user->created_at;
+            $startDay = $user->created_at->startOfDay();
         }
 
         return $startDay;
     }
 
-    public function createOnlyAttendanceRecode($startDay, $today, $user)
+    /**
+     * 勤怠実績がない場合の空レコード作成
+     */
+    public function createOnlyAttendanceRecode(CarbonImmutable|Carbon $startDay, CarbonImmutable $today, User $user): void
     {
         for ($date = $startDay; $date->lt($today); $date = $date->addDay()) {
             AttendanceRecord::firstOrCreate([
@@ -295,7 +324,12 @@ class AttendanceService
         }
     }
 
-    public function updateAttendance($validated, $id)
+    /**
+     * 管理者の修正処理（直接勤怠レコードをupdate）
+     *
+     * @param  int  $id  AttendanceRecordのID
+     */
+    public function updateAttendance(array $validated, int $id): void
     {
         $data = $this->newDataFormat($validated);
         $breakIn = $data['break_in'];
@@ -313,7 +347,10 @@ class AttendanceService
         });
     }
 
-    public function newDataFormat($validated)
+    /**
+     * new_がついたinputフォームをnew_無しにして配列に変換
+     */
+    public function newDataFormat(array $validated): array
     {
         $formattedData = [];
 
@@ -329,7 +366,12 @@ class AttendanceService
         return $formattedData;
     }
 
-    public function saveBreakRecords($attendanceRecord, $breakArr)
+    /**
+     * 休憩レコードの作成・更新
+     *
+     * @param  AttendanceRecord  $attendanceRecord
+     */
+    public function saveBreakRecords(storeAttendanceRecord $attendanceRecord, array $breakArr): void
     {
         $breakRecords = $attendanceRecord->breakRecords()->get();
 

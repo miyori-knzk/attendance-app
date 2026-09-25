@@ -10,8 +10,11 @@ use Illuminate\View\View;
 
 class StampCorrectionRequestController extends Controller
 {
-    private $stampCorrectionRequestService;
+    private StampCorrectionRequestService $stampCorrectionRequestService;
 
+    /**
+     *  StampCorrectionRequestController constructor
+     */
     public function __construct(StampCorrectionRequestService $stampCorrectionRequestService)
     {
         $this->stampCorrectionRequestService = $stampCorrectionRequestService;
@@ -24,9 +27,8 @@ class StampCorrectionRequestController extends Controller
      * ミドルウエアで表示するビューを設定している
      *
      * @param  Request  $request  HTTP リクエスト
-     * @return View
      */
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $data = [];
         $formattedApplications = [];
@@ -47,9 +49,8 @@ class StampCorrectionRequestController extends Controller
      * 申請詳細画面の表示
      *
      * @param  int  $attendanceCorrectRequestId  AttendanceCorrectRequestのID
-     * @return View
      */
-    public function show($attendanceCorrectRequestId)
+    public function show(int $attendanceCorrectRequestId): View
     {
         $application = AttendanceCorrectRequest::findOrFail($attendanceCorrectRequestId);
         $user = $application->getUserAttribute();
@@ -61,9 +62,8 @@ class StampCorrectionRequestController extends Controller
      * 申請の承認処理
      *
      * @param  int  $attendanceCorrectRequestId  AttendanceCorrectRequestのID
-     * @return RedirectResponse
      */
-    public function update($attendanceCorrectRequestId)
+    public function update(int $attendanceCorrectRequestId): RedirectResponse
     {
         $this->stampCorrectionRequestService->approve($attendanceCorrectRequestId);
 
