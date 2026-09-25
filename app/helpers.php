@@ -2,7 +2,13 @@
 
 use Carbon\CarbonImmutable;
 
-function hisToHi($val)
+/**
+ * 文字列の時間をHH:MM:SSをHHH:MMに変換
+ * HH:MM:SSでない場合はそのまま返す
+ *
+ * @return string|mixed
+ */
+function hisToHi(mixed $val): mixed
 {
     if (is_string($val) && preg_match('/^\d{2}:\d{2}:\d{2}$/', $val)) {
         return CarbonImmutable::parse($val)->format('H:i');
@@ -11,7 +17,13 @@ function hisToHi($val)
     return $val;
 }
 
-function dateFormat($val)
+/**
+ * 文字列を CarbonImmutable に変換
+ *
+ * @param  string|null  $val  Y-m-d 形式 または null
+ * @return CarbonImmutable|null 成功時は CarbonImmutable オブジェクト、失敗時は null
+ */
+function dateFormat(?string $val): ?CarbonImmutable
 {
     if (empty($val)) {
         return null;
@@ -26,7 +38,13 @@ function dateFormat($val)
     return $carbon;
 }
 
-function dateFormat2($val)
+/**
+ * 日付をY/m/dにして返す
+ *
+ * @param  mixed  $val  日付
+ * @return string|null 変換できなかった場合はNULLで返す
+ */
+function dateFormat2(mixed $val): ?string
 {
     if (empty($val)) {
         return null;
@@ -45,7 +63,13 @@ function dateFormat2($val)
     return $carbon;
 }
 
-function timeFormat($val)
+/**
+ * 時間の文字列をCarbonImmutableに変換
+ *
+ * @param  string|null  $val  HH:MM:SS形式
+ * @return CarbonImmutable|null 変換に成功すればCarbonImmutable
+ */
+function timeFormat(?string $val): ?CarbonImmutable
 {
     if (empty($val)) {
         return null;
@@ -58,7 +82,12 @@ function timeFormat($val)
     }
 }
 
-function jpWeekday($val)
+/**
+ * 日本語の曜日を返す
+ *
+ * @param  int  $val  0~6の数字
+ */
+function jpWeekday(int $val): string
 {
     $tmp = null;
     $dayOfWeekArr = ['日', '月', '火', '水', '木', '金', '土'];
@@ -71,7 +100,10 @@ function jpWeekday($val)
 
 }
 
-function dateTimeToHi($val)
+/**
+ * CarbonImmutableをHH:MMに変換
+ */
+function dateTimeToHi(?CarbonImmutable $val): ?string
 {
     if (empty($val)) {
         return null;
@@ -84,7 +116,10 @@ function dateTimeToHi($val)
     }
 }
 
-function getFirstOfMonth($val)
+/**
+ * CarbonImmutableから月初を取得
+ */
+function getFirstOfMonth(CarbonImmutable $val): ?CarbonImmutable
 {
     if (empty($val)) {
         return null;
@@ -97,7 +132,10 @@ function getFirstOfMonth($val)
     }
 }
 
-function getEndOfMonth($val)
+/**
+ * CarbonImmutableから月初を取得
+ */
+function getEndOfMonth(CarbonImmutable $val): ?CarbonImmutable
 {
     if (empty($val)) {
         return null;
@@ -110,7 +148,12 @@ function getEndOfMonth($val)
     }
 }
 
-function jpDateFormat($val)
+/**
+ * Y-m-d形式の日付をY年m月d日に変換
+ *
+ * @param string Y-m-d形式
+ */
+function jpDateFormat(string $val): array
 {
     $data = [];
     $spritDate = explode('-', $val);

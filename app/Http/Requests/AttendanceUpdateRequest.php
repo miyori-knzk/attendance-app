@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class AttendanceUpdateRequest extends FormRequest
 {
@@ -32,7 +33,12 @@ class AttendanceUpdateRequest extends FormRequest
         ];
     }
 
-    public function withValidator($validator)
+    /**
+     * 出退勤・休憩入戻の時間の整合性をチェック
+     *
+     * @return void
+     */
+    public function withValidator(Validator $validator)
     {
         $validator->after(function ($validator) {
 
@@ -63,11 +69,13 @@ class AttendanceUpdateRequest extends FormRequest
                 $bO = $breakOuts[$key] ?? null;
 
                 if ($bI == null && $bO == null) {
-                    return;
+                    continue;
                 }
 
                 if ($bI == null || $bO == null) {
                     $validator->errors()->add("new_break_in.$key", '休憩の入りと戻りはセットで入力してください');
+
+                    continue;
                 }
 
                 $bITime = CarbonImmutable::parse(mb_convert_kana($bI, 'ask'))->setSecond(0);
@@ -84,6 +92,8 @@ class AttendanceUpdateRequest extends FormRequest
                 if ($bOTime->greaterThan($clockOutTime)) {
                     $validator->errors()->add("new_break_in.$key", '休憩時間もしくは退勤時間が不適切な値です');
                 }
+
+                $preBO = $bO;
 
             }
         });

@@ -14,8 +14,11 @@ use Illuminate\View\View;
 
 class AttendanceController extends Controller
 {
-    private $attendanceService;
+    private AttendanceService $attendanceService;
 
+    /**
+     * AttendanceController constructor
+     */
     public function __construct(AttendanceService $attendanceService)
     {
         $this->attendanceService = $attendanceService;
@@ -23,6 +26,8 @@ class AttendanceController extends Controller
 
     /**
      * 勤怠登録画面の表示
+     *
+     * @return \Illuminate\Contracts\View\View
      */
     public function create(): View
     {
@@ -30,7 +35,7 @@ class AttendanceController extends Controller
         $now = CarbonImmutable::now();
 
         $formattedDate = $now->format('Y年n月j日');
-        $formattedTime = timeFormat($now);
+        $formattedTime = $now->format('H:i:s');
 
         return view('user.attendance-register', compact('user', 'formattedDate', 'formattedTime'));
     }
@@ -65,7 +70,7 @@ class AttendanceController extends Controller
      * @param  AttendanceIndexRequest  $request  バリデーション済みリクエスト
      * @return View 勤怠一覧ページ
      */
-    public function index(AttendanceIndexRequest $request)
+    public function index(AttendanceIndexRequest $request): View
     {
 
         // リクエストにdateがあれば、バリデート済みのdateを使用、
@@ -93,7 +98,7 @@ class AttendanceController extends Controller
      * @param  int  $id  AttendanceRecord の ID
      * @return View 勤怠詳細ページ
      */
-    public function edit($id)
+    public function edit(int $id): View
     {
         $user = auth()->user();
         $data = $this->attendanceService->makeEditData($id);
@@ -106,11 +111,10 @@ class AttendanceController extends Controller
      *
      * @param  AttendanceUpdateRequest  $request  バリデート済みリクエストオブジェクト
      * @param  int  $id  AttendanceRecord の ID
-     * @return RedirectResponse
      *
      * @throws ModelNotFoundException // AttendanceRecord が見つからない場合
      */
-    public function requestStore(AttendanceUpdateRequest $request, $id)
+    public function requestStore(AttendanceUpdateRequest $request, int $id): RedirectResponse
     {
         $attendanceRecord = AttendanceRecord::findOrFail($id);
         $this->attendanceService->saveRequestRecord($request, $attendanceRecord);

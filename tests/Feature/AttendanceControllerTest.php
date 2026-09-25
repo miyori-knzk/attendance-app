@@ -1262,5 +1262,6 @@ class AttendanceControllerTest extends TestCase
             'new_break_in' => '12:00',
             'new_break_out' => '12:45',
         ]);
+
     }
 }
