@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('break_records', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('attendance_record_id');
+            $table->foreignId('attendance_record_id')->constrained()->cascadeOnDelete();
             $table->time('break_in');
             $table->time('break_out')->nullable();
             $table->timestamps();
