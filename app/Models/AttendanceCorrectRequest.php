@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 class AttendanceCorrectRequest extends Model
 {
@@ -115,8 +116,6 @@ class AttendanceCorrectRequest extends Model
 
     /**
      * 修正申請日をcreated_atとして扱う
-     *
-     * @return \Immutable\Support\Carbon
      */
     public function getApplicationDateAttribute(): Carbon
     {
