@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\StampCorrectionRequestController;
 use Illuminate\Support\Facades\Route;
 
@@ -46,4 +47,6 @@ Route::middleware('auth')->group(function () {
         Route::get('attendance/staff/{id}', 'staffAttendance');
         Route::get('staff/list', 'staffIndex');
     });
+    Route::post('export', [ExportController::class, 'export']);
+
 });
