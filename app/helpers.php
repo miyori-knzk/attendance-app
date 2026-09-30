@@ -133,7 +133,7 @@ function getFirstOfMonth(CarbonImmutable $val): ?CarbonImmutable
 }
 
 /**
- * CarbonImmutableから月初を取得
+ * CarbonImmutableから月末を取得
  */
 function getEndOfMonth(CarbonImmutable $val): ?CarbonImmutable
 {
