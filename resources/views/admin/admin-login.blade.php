@@ -44,6 +44,7 @@
                         @enderror
                     </div>
                 </div>
+                <input type="hidden" value="admin" name="role">
                 <div class="form__button">
                     <button class="form__button--submit">管理者ログインする</button>
                 </div>

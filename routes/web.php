@@ -28,7 +28,7 @@ Route::middleware(['guest'])->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::prefix('attendance')->controller(AttendanceController::class)->group(function () {
+    Route::prefix('attendance')->middleware('user')->controller(AttendanceController::class)->group(function () {
         Route::get('', 'create');
         Route::post('', 'store');
         Route::get('list', 'index');
@@ -37,10 +37,10 @@ Route::middleware('auth')->group(function () {
     });
     Route::prefix('stamp_correction_request')->controller(StampCorrectionRequestController::class)->group(function () {
         Route::get('list', 'index')->middleware('set.app.index.view');
-        Route::get('approve/{attendance_correct_request_id}', 'show');
-        Route::post('approve/{attendance_correct_request_id}', 'update');
+        Route::get('approve/{attendance_correct_request_id}', 'show')->middleware('admin');
+        Route::post('approve/{attendance_correct_request_id}', 'update')->middleware('admin');
     });
-    Route::prefix('admin')->controller(AdminController::class)->group(function () {
+    Route::prefix('admin')->middleware('admin')->controller(AdminController::class)->group(function () {
         Route::get('attendance/list', 'index');
         Route::get('attendance/{id}', 'edit');
         Route::post('attendance/{id}', 'update');

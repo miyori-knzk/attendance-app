@@ -162,13 +162,10 @@ class AttendanceService
     /**
      * 勤怠詳細画面に表示するデータをフォーマット
      *
-     * @param  int  $id  AttendanceRecordのID
+     * @return array ビューで使う勤怠データを配列形式にフォーマット
      */
-    public function makeEditData(int $id): array
+    public function makeEditData(AttendanceRecord $attendanceRecord): array
     {
-
-        $attendanceRecord = AttendanceRecord::findOrFail($id);
-
         $data = jpDateformat($attendanceRecord->date);
         $data['application'] = $attendanceRecord->requestIsPending();
 
@@ -368,10 +365,8 @@ class AttendanceService
 
     /**
      * 休憩レコードの作成・更新
-     *
-     * @param  AttendanceRecord  $attendanceRecord
      */
-    public function saveBreakRecords(storeAttendanceRecord $attendanceRecord, array $breakArr): void
+    public function saveBreakRecords(AttendanceRecord $attendanceRecord, array $breakArr): void
     {
         $breakRecords = $attendanceRecord->breakRecords()->get();
 

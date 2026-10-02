@@ -7,11 +7,14 @@ use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Auth\CustomLoginResponse;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\LoginResponse;
 use Laravel\Fortify\Fortify;
 
@@ -53,5 +56,29 @@ class FortifyServiceProvider extends ServiceProvider
             return view('user.register');
         });
 
+        Fortify::authenticateUsing(function (Request $request) {
+
+            $user = User::where('email', $request->email)->first();
+
+            if (! $user || ! Hash::check($request->password, $user->password)) {
+                return null;
+            }
+
+            $view = $request->role;
+
+            if ($view == 'admin' && $user->admin_status != 1) {
+                throw ValidationException::withMessages([
+                    'email' => ['管理者ログイン画面からはログインできません。'],
+                ]);
+            }
+
+            if ($view == 'user' && $user->admin_status == 1) {
+                throw ValidationException::withMessages([
+                    'email' => ['一般ユーザーのログイン画面からはログインできません。'],
+                ]);
+            }
+
+            return $user;
+        });
     }
 }

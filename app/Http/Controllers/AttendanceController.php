@@ -72,7 +72,6 @@ class AttendanceController extends Controller
      */
     public function index(AttendanceIndexRequest $request): View
     {
-
         // リクエストにdateがあれば、バリデート済みのdateを使用、
         // なければ今日の日付を使用
 
@@ -101,7 +100,9 @@ class AttendanceController extends Controller
     public function edit(int $id): View
     {
         $user = auth()->user();
-        $data = $this->attendanceService->makeEditData($id);
+        $attendanceRecord = AttendanceRecord::findOrFail($id);
+        $this->authorize('view', $attendanceRecord);
+        $data = $this->attendanceService->makeEditData($attendanceRecord);
 
         return view('user.user-detail', compact('data', 'user'));
     }
@@ -117,6 +118,8 @@ class AttendanceController extends Controller
     public function requestStore(AttendanceUpdateRequest $request, int $id): RedirectResponse
     {
         $attendanceRecord = AttendanceRecord::findOrFail($id);
+        $this->authorize('update', $attendanceRecord);
+
         $this->attendanceService->saveRequestRecord($request, $attendanceRecord);
 
         return Redirect('/attendance/detail/' . $attendanceRecord->id);
