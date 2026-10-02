@@ -185,7 +185,7 @@ class StampCorrectionRequestControllerTest extends TestCase
     {
         $cnt = 0;
         $users = User::factory()->create();
-        $admin = User::factory()->create();
+        $admin = User::factory()->create(['admin_status' => 1]);
         $now = CarbonImmutable::now();
 
         for ($day = $now->firstOfMonth(); $day->lte($now); $day = $day->addDay()) {
@@ -227,7 +227,7 @@ class StampCorrectionRequestControllerTest extends TestCase
     {
         $cnt = 0;
         $users = User::factory()->create();
-        $admin = User::factory()->create();
+        $admin = User::factory()->create(['admin_status' => 1]);
         $now = CarbonImmutable::now();
 
         for ($day = $now->firstOfMonth(); $day->lte($now); $day = $day->addDay()) {
@@ -268,7 +268,7 @@ class StampCorrectionRequestControllerTest extends TestCase
     public function 管理者の修正申請の画面に修正申請の詳細内容が正しく表示されている()
     {
         $user = User::factory()->create();
-        $admin = User::factory()->create();
+        $admin = User::factory()->create(['admin_status' => 1]);
 
         $attendanceRecord = AttendanceRecord::factory()->create([
             'user_id' => $user->id,
@@ -301,7 +301,7 @@ class StampCorrectionRequestControllerTest extends TestCase
     public function 管理者が行った修正申請の承認処理が正しく行われる()
     {
         $user = User::factory()->create();
-        $admin = User::factory()->create();
+        $admin = User::factory()->create(['admin_status' => 1]);
 
         $attendanceRecord = AttendanceRecord::factory()->create([
             'user_id' => $user->id,

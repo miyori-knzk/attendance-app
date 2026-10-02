@@ -3,6 +3,8 @@
 namespace App\Http;
 
 use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\CheckAdmin;
+use App\Http\Middleware\CheckUser;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use App\Http\Middleware\RedirectIfAuthenticated;
@@ -89,5 +91,7 @@ class Kernel extends HttpKernel
         'throttle' => ThrottleRequests::class,
         'verified' => EnsureEmailIsVerified::class,
         'set.app.index.view' => SetAppIndexView::class,
+        'admin' => CheckAdmin::class,
+        'user' => CheckUser::class,
     ];
 }

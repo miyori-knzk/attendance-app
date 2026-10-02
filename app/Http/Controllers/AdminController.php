@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AdminIndexRequest;
 use App\Http\Requests\AttendanceUpdateRequest;
 use App\Http\Requests\StaffAttendanceListRequest;
+use App\Models\AttendanceRecord;
 use App\Models\User;
 use App\Services\AttendanceService;
 use Illuminate\Http\RedirectResponse;
@@ -59,7 +60,8 @@ class AdminController extends Controller
      */
     public function edit(int $id): View
     {
-        $attendanceRecord = $this->attendanceService->makeEditData($id);
+        $tmpAttendance = AttendanceRecord::findOrFail($id);
+        $attendanceRecord = $this->attendanceService->makeEditData($tmpAttendance);
         $user = User::findOrFail($attendanceRecord['user_id']);
 
         return view('admin.admin-detail', compact('attendanceRecord', 'user'));

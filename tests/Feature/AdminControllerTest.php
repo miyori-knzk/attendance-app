@@ -246,7 +246,9 @@ class AdminControllerTest extends TestCase
     {
         $userDatas = [];
         $tmpApproved = [];
+        $admin = User::factory()->create(['admin_status' => 1]);
         $user = User::factory()->create();
+
         $now = CarbonImmutable::now();
 
         $attendanceRecord = AttendanceRecord::factory()->create([
@@ -259,13 +261,13 @@ class AdminControllerTest extends TestCase
             'clock_out' => '17:30',
         ]);
 
-        $response = $this->actingAs($user)->get('/admin/attendance/list');
+        $response = $this->actingAs($admin)->get('/admin/attendance/list');
         $html = $response->getContent();
         $nextUrl = '/admin/attendance/' . $attendanceRecord->id;
 
         preg_match('/' . preg_quote($nextUrl, '/') . '/', $html, $url);
 
-        $nextPage = $this->actingAs($user)->get($url[0]);
+        $nextPage = $this->actingAs($admin)->get($url[0]);
         $nextPage->assertSee('勤怠詳細');
         $nextPage->assertSee($now->format('m月d日'));
         $nextPage->assertStatus(200);
@@ -381,7 +383,7 @@ class AdminControllerTest extends TestCase
     public function 管理者はユーザーの勤怠情報が正しく表示できる()
     {
         $users = User::factory()->count(3)->create();
-        $admin = User::factory()->create();
+        $admin = User::factory()->create(['admin_status' => 1]);
         $now = CarbonImmutable::now();
         $firstOfThisMonth = $now->firstOfMonth();
         $cnt = 0;
@@ -424,7 +426,7 @@ class AdminControllerTest extends TestCase
     public function 「前月」を押下した時に表示月の前月の情報が表示される()
     {
         $users = User::factory()->count(3)->create();
-        $admin = User::factory()->create();
+        $admin = User::factory()->create(['admin_status' => 1]);
         $now = CarbonImmutable::now();
         $lastMonth = $now->subMonth();
         $firstOfLastMonth = $lastMonth->firstOfMonth();
@@ -457,7 +459,7 @@ class AdminControllerTest extends TestCase
     public function 「翌月」を押下した時に表示月の前月の情報が表示される()
     {
         $users = User::factory()->count(3)->create();
-        $admin = User::factory()->create();
+        $admin = User::factory()->create(['admin_status' => 1]);
         $now = CarbonImmutable::now();
         $nextMonth = $now->addMonth();
         $firstOfNextMonth = $nextMonth->firstOfMonth();
@@ -490,7 +492,7 @@ class AdminControllerTest extends TestCase
     public function 「詳細」を押下すると、その日の勤怠詳細画面に遷移する()
     {
         $users = User::factory()->create();
-        $admin = User::factory()->create();
+        $admin = User::factory()->create(['admin_status' => 1]);
         $now = CarbonImmutable::now();
 
         for ($day = $now->firstOfMonth(); $day->lte($now); $day = $day->addDay()) {
