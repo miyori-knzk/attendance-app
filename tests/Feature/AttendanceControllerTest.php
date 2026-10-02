@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\VerifyCsrfToken;
 use App\Models\AttendanceCorrectRequest;
 use App\Models\AttendanceRecord;
 use App\Models\BreakRecord;
@@ -14,6 +15,15 @@ use Tests\TestCase;
 class AttendanceControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware([
+            VerifyCsrfToken::class,
+        ]);
+    }
 
     /** @test */
     public function ログインユーザーは出退勤登録画面を開くことができる(): void

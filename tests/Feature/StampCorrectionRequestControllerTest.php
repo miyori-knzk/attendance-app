@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\VerifyCsrfToken;
 use App\Models\AttendanceCorrectRequest;
 use App\Models\AttendanceRecord;
 use App\Models\User;
@@ -12,6 +13,15 @@ use Tests\TestCase;
 class StampCorrectionRequestControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware([
+            VerifyCsrfToken::class,
+        ]);
+    }
 
     /** @test */
     public function 「承認待ち」にログインユーザーが行った申請が全て表示されている()

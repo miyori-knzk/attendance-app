@@ -28,7 +28,7 @@ Route::middleware(['guest'])->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::prefix('attendance')->middleware('user')->controller(AttendanceController::class)->group(function () {
+    Route::prefix('attendance')->middleware('verified', 'user')->controller(AttendanceController::class)->group(function () {
         Route::get('', 'create');
         Route::post('', 'store');
         Route::get('list', 'index');
@@ -47,6 +47,6 @@ Route::middleware('auth')->group(function () {
         Route::get('attendance/staff/{id}', 'staffAttendance');
         Route::get('staff/list', 'staffIndex');
     });
-    Route::post('export', [ExportController::class, 'export']);
+    Route::post('export', [ExportController::class, 'export'])->middleware('admin');
 
 });

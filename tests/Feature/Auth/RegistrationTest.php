@@ -2,12 +2,22 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware([
+            VerifyCsrfToken::class,
+        ]);
+    }
 
     /** @test */
     public function 名前が未入力の場合、バリデーションメッセージが表示される()
