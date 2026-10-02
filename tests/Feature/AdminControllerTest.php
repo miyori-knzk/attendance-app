@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\VerifyCsrfToken;
 use App\Models\AttendanceRecord;
 use App\Models\User;
 use Carbon\Carbon;
@@ -12,6 +13,15 @@ use Tests\TestCase;
 class AdminControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware([
+            VerifyCsrfToken::class,
+        ]);
+    }
 
     /** @test */
     public function 勤怠一覧画面でその日になされた全ユーザーの勤怠情報が正確に確認できる()
@@ -388,9 +398,11 @@ class AdminControllerTest extends TestCase
         $firstOfThisMonth = $now->firstOfMonth();
         $cnt = 0;
 
+        $user1 = User::orderBy('id', 'asc')->first();
+
         for ($day = $firstOfThisMonth; $day->lte($now); $day = $day->addDay()) {
             $attendanceRecord = AttendanceRecord::factory()->create([
-                'user_id' => 1,
+                'user_id' => $user1->id,
                 'date' => $day->format('Y-m-d'),
             ]);
             $attendanceRecord->clockRecord()->create([
@@ -403,8 +415,8 @@ class AdminControllerTest extends TestCase
             ]);
         }
 
-        $attendanceRecords = AttendanceRecord::getMonthUserData($now, User::findOrFail(1));
-        $response = $this->actingAs($admin)->get('/admin/attendance/staff/1');
+        $attendanceRecords = AttendanceRecord::getMonthUserData($now, $user1);
+        $response = $this->actingAs($admin)->get('/admin/attendance/staff/' . $user1->id);
 
         $response->assertStatus(200);
         $response->assertViewHas('formattedAttendanceRecords', function ($formattedAttendanceRecords) use ($cnt, $attendanceRecords) {
@@ -431,9 +443,11 @@ class AdminControllerTest extends TestCase
         $lastMonth = $now->subMonth();
         $firstOfLastMonth = $lastMonth->firstOfMonth();
 
+        $user1 = User::orderBy('id', 'asc')->first();
+
         for ($day = $firstOfLastMonth; $day->lte($now); $day = $day->addDay()) {
             $attendanceRecord = AttendanceRecord::factory()->create([
-                'user_id' => 1,
+                'user_id' => $user1->id,
                 'date' => $day->format('Y-m-d'),
             ]);
             $attendanceRecord->clockRecord()->create([
@@ -446,8 +460,8 @@ class AdminControllerTest extends TestCase
             ]);
         }
 
-        $attendanceRecords = AttendanceRecord::getMonthUserData($lastMonth, User::findOrFail(1));
-        $response = $this->actingAs($admin)->get('/admin/attendance/staff/1?date=' . $firstOfLastMonth->format('Y-m-d'));
+        $attendanceRecords = AttendanceRecord::getMonthUserData($lastMonth, $user1);
+        $response = $this->actingAs($admin)->get('/admin/attendance/staff/' . $user1->id . '?date=' . $firstOfLastMonth->format('Y-m-d'));
 
         $response->assertStatus(200);
         $response->assertViewHas('formattedAttendanceRecords', function ($formattedAttendanceRecords) use ($attendanceRecords) {
@@ -464,9 +478,11 @@ class AdminControllerTest extends TestCase
         $nextMonth = $now->addMonth();
         $firstOfNextMonth = $nextMonth->firstOfMonth();
 
+        $user1 = User::orderBy('id', 'asc')->first();
+
         for ($day = $firstOfNextMonth; $day->lte($now); $day = $day->addDay()) {
             $attendanceRecord = AttendanceRecord::factory()->create([
-                'user_id' => 1,
+                'user_id' => $user1->id,
                 'date' => $day->format('Y-m-d'),
             ]);
             $attendanceRecord->clockRecord()->create([
@@ -479,8 +495,8 @@ class AdminControllerTest extends TestCase
             ]);
         }
 
-        $attendanceRecords = AttendanceRecord::getMonthUserData($nextMonth, User::findOrFail(1));
-        $response = $this->actingAs($admin)->get('/admin/attendance/staff/1?date=' . $firstOfNextMonth->format('Y-m-d'));
+        $attendanceRecords = AttendanceRecord::getMonthUserData($nextMonth, $user1);
+        $response = $this->actingAs($admin)->get('/admin/attendance/staff/' . $user1->id . '?date=' . $firstOfNextMonth->format('Y-m-d'));
 
         $response->assertStatus(200);
         $response->assertViewHas('formattedAttendanceRecords', function ($formattedAttendanceRecords) use ($attendanceRecords) {
@@ -491,13 +507,13 @@ class AdminControllerTest extends TestCase
     /** @test */
     public function 「詳細」を押下すると、その日の勤怠詳細画面に遷移する()
     {
-        $users = User::factory()->create();
+        $user = User::factory()->create();
         $admin = User::factory()->create(['admin_status' => 1]);
         $now = CarbonImmutable::now();
 
         for ($day = $now->firstOfMonth(); $day->lte($now); $day = $day->addDay()) {
             $attendanceRecord = AttendanceRecord::factory()->create([
-                'user_id' => 1,
+                'user_id' => $user->id,
                 'date' => $day->format('Y-m-d'),
             ]);
             $attendanceRecord->clockRecord()->create([
@@ -510,8 +526,8 @@ class AdminControllerTest extends TestCase
             ]);
         }
 
-        $attendanceRecords = AttendanceRecord::getMonthUserData($now, User::findOrFail(1));
-        $response = $this->actingAs($admin)->get('/admin/attendance/staff/1');
+        $attendanceRecords = AttendanceRecord::getMonthUserData($now, $user);
+        $response = $this->actingAs($admin)->get('/admin/attendance/staff/' . $user->id);
 
         $html = $response->getContent();
         $nextUrl = '/admin/attendance/' . $attendanceRecords->first()->id;

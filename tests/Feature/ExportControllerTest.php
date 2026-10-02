@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\VerifyCsrfToken;
 use App\Models\AttendanceRecord;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -11,6 +12,15 @@ use Tests\TestCase;
 class ExportControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware([
+            VerifyCsrfToken::class,
+        ]);
+    }
 
     /** @test */
     public function 管理ユーザーは_cs_vデータのダウンロードができる(): void

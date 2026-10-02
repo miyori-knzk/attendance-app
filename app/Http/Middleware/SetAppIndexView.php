@@ -19,9 +19,13 @@ class SetAppIndexView
             return redirect()->route('login');
         }
 
-        $role = $request->user()->admin_status;
+        $user = $request->user();
 
-        if ($role) {
+        if (! $user->admin_status && ! $user->hasVerifiedEmail()) {
+            return Redirect('/email/verify');
+        }
+
+        if ($user->admin_status) {
             $request->attributes->set('view', 'admin.admin-application-list');
         } else {
             $request->attributes->set('view', 'user.user-application-list');

@@ -80,5 +80,10 @@ class FortifyServiceProvider extends ServiceProvider
 
             return $user;
         });
+
+        Fortify::verifyEmailView(function () {
+            return view('auth.verify-email');
+        });
+
     }
 }
