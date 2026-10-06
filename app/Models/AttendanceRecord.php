@@ -50,6 +50,30 @@ class AttendanceRecord extends Model
             ->get();
     }
 
+    // /**
+    //  * ユーザーの過去６か月間の勤怠データを取得
+    //  * @param User|null $userがなければログインユーザーの勤怠を取得
+    //  * @return Collection
+    //  */
+    // public static function getSixMonthData(User $user = null): Collection
+    // {
+    //     $now = CarbonImmutable::now();
+
+    //     if ($user === null) {
+    //         $user = auth()->user();
+    //     }
+
+    //     $sixMonthAgo = $now->subMonth(6)->firstOfMonth()->format('Y-m-d');
+    //     $today = $now->format('Y-m-d');
+
+    //     return self::where('user_id', $user->id)
+    //         ->where('date', '>=', $sixMonthAgo)
+    //         ->where('date', '<=', $today)
+    //         ->with('clockRecord', 'breakRecords')
+    //         ->orderBy('date')
+    //         ->get();
+    // }
+
     /**
      * 対象の日付のデータを取得
      */

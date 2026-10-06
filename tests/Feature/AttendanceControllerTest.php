@@ -23,6 +23,7 @@ class AttendanceControllerTest extends TestCase
         $this->withoutMiddleware([
             VerifyCsrfToken::class,
         ]);
+
     }
 
     /** @test */
@@ -1273,5 +1274,186 @@ class AttendanceControllerTest extends TestCase
             'new_break_out' => '12:45',
         ]);
 
+    }
+
+    /** @test */
+    public function ゲストはレポートページにアクセスできない()
+    {
+        $response = $this->get('/attendance/report');
+
+        $response->assertRedirect('login');
+    }
+
+    /** @test */
+    public function 認証ユーザーの統計情報が正しく計算される()
+    {
+        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-10-17 23:09:00'));
+
+        $okCnt = 0;
+
+        $user = User::factory()->create(['created_at' => CarbonImmutable::parse('2026-03-09 15:34:22')]);
+        $startDay = $user->created_at->startOfDay();
+        $today = CarbonImmutable::now()->startOfDay();
+
+        for ($day = $startDay; $day->lte($today); $day = $day->addDay()) {
+
+            $attendanceRecord = AttendanceRecord::factory()->create([
+                'user_id' => $user->id,
+                'date' => $day,
+            ]);
+
+            if ($day->month == $today->month) {
+                if ($day->day < 11) {
+                    $attendanceRecord->clockRecord()->create([
+                        'clock_in' => '09:00:00',
+                        'clock_out' => '18:00:00',
+                    ]);
+
+                    $attendanceRecord->breakRecords()->create([
+                        'break_in' => '12:00:00',
+                        'break_out' => '13:00:00',
+                    ]);
+                } elseif ($day->day < 14) {
+                    $attendanceRecord->clockRecord()->create([
+                        'clock_in' => '09:00:00',
+                        'clock_out' => '20:00:00',
+                    ]);
+
+                    $attendanceRecord->breakRecords()->create([
+                        'break_in' => '12:00:00',
+                        'break_out' => '13:00:00',
+                    ]);
+                } elseif ($day->day < 16) {
+                    $attendanceRecord->clockRecord()->create([
+                        'clock_in' => '09:30:00',
+                        'clock_out' => '18:00:00',
+                    ]);
+
+                    $attendanceRecord->breakRecords()->create([
+                        'break_in' => '12:00:00',
+                        'break_out' => '13:00:00',
+                    ]);
+                } elseif ($day->day < 17) {
+                    $attendanceRecord->clockRecord()->create([
+                        'clock_in' => '09:00:00',
+                        'clock_out' => '17:00:00',
+                    ]);
+
+                    $attendanceRecord->breakRecords()->create([
+                        'break_in' => '12:00:00',
+                        'break_out' => '13:00:00',
+                    ]);
+                } else {
+                    $attendanceRecord->clockRecord()->create([
+                        'clock_in' => '08:00:00',
+                        'clock_out' => '21:00:00',
+                    ]);
+
+                    $attendanceRecord->breakRecords()->create([
+                        'break_in' => '12:00:00',
+                        'break_out' => '13:00:00',
+                    ]);
+                }
+
+            } else {
+
+                if ($day->day < 16) {
+                    $attendanceRecord->clockRecord()->create([
+                        'clock_in' => '09:00:00',
+                        'clock_out' => '18:00:00',
+                    ]);
+
+                    $attendanceRecord->breakRecords()->create([
+                        'break_in' => '12:00:00',
+                        'break_out' => '13:00:00',
+                    ]);
+                }
+            }
+
+        }
+
+        $responce = $this->actingAs($user)->get('/attendance/report');
+
+        $responce->assertViewHas('summary', function ($summary) {
+            if ($summary['total_work_minutes'] == 44640
+                && $summary['total_overtime_minutes'] == 600
+                && $summary['avg_work_minutes'] == 485
+            ) {
+                return true;
+            }
+        });
+        $responce->assertSee('744h 0m');
+        $responce->assertSee('10h 0m');
+        $responce->assertSee('8h 5m');
+
+        $responce->assertViewHas('monthlyTrend', function ($monthlyTrend) use ($okCnt) {
+            foreach ($monthlyTrend as $val) {
+                if ($val['month'] == '2026-10' && $val['work_minutes'] == 8640) {
+                    $okCnt++;
+                }
+                if ($val['month'] == '2026-09' && $val['work_minutes'] == 7200) {
+                    $okCnt++;
+                }
+                if ($val['month'] == '2026-08' && $val['work_minutes'] == 7200) {
+                    $okCnt++;
+                }
+                if ($val['month'] == '2026-07' && $val['work_minutes'] == 7200) {
+                    $okCnt++;
+                }
+                if ($val['month'] == '2026-06' && $val['work_minutes'] == 7200) {
+                    $okCnt++;
+                }
+                if ($val['month'] == '2026-05' && $val['work_minutes'] == 7200) {
+                    $okCnt++;
+                }
+            }
+
+            return $okCnt == 6;
+        });
+
+        $responce->assertViewHas('anomalies', function ($anomalies) {
+            if ($anomalies['late_count'] == 2
+                && $anomalies['early_leave_count'] == 1
+                && $anomalies['long_work_count'] == 1) {
+                return true;
+            }
+        });
+    }
+
+    /** @test */
+    public function 勤怠記録がないユーザーで安全に処理される()
+    {
+        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-10-05 23:09:00'));
+
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $startDay = dateFormat(date('2026-03-01'))->startOfDay();
+        $today = CarbonImmutable::now()->startOfDay();
+
+        for ($date = $startDay; $date->lte($today); $date = $date->addDay()) {
+            $day = $date->format('Y-m-d');
+            $dayOfWeek = $date->dayOfWeek;
+
+            $attendance = AttendanceRecord::factory()->create([
+                'user_id' => $user->id,
+                'date' => $day,
+            ]);
+
+            if ($dayOfWeek != 0 && $dayOfWeek != 6) {
+                $attendance->clockRecord()->create([
+                    'clock_in' => '09:00:00',
+                    'clock_out' => '18:00:00',
+                ]);
+
+                $attendance->breakRecords()->create([
+                    'break_in' => '12:00:00',
+                    'break_out' => '13:00:00',
+                ]);
+            }
+
+        }
+
+        $response = $this->actingAs($otherUser)->get('/attendance/report');
+        $response->assertOk();
     }
 }
