@@ -8,7 +8,6 @@ use App\Models\AttendanceRecord;
 use App\Models\BreakRecord;
 use App\Models\ClockRecord;
 use App\Models\User;
-use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -1424,7 +1423,7 @@ class AttendanceControllerTest extends TestCase
     /** @test */
     public function 勤怠記録がないユーザーで安全に処理される()
     {
-        Carbon::setTestNow(CarbonImmutable::parse('2026-10-05 23:09:00'));
+        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-10-05 23:09:00'));
 
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
