@@ -34,6 +34,7 @@ Route::middleware('auth')->group(function () {
         Route::get('list', 'index');
         Route::get('detail/{id}', 'edit');
         Route::post('detail/{id}', 'requestStore');
+        Route::get('report', 'report');
     });
     Route::prefix('stamp_correction_request')->controller(StampCorrectionRequestController::class)->group(function () {
         Route::get('list', 'index')->middleware('set.app.index.view');

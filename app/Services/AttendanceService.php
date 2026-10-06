@@ -404,4 +404,153 @@ class AttendanceService
             }
         }
     }
+
+    /**
+     * マイ勤怠レポートのデータフォーマット
+     *
+     * @return array summary,nonthlyTrend,anomaliesを格納した配列をdataに格納して返す
+     */
+    public function makeReportData(): array
+    {
+        $data = [];
+        $suummary = [];
+        $monthlyTrend = [];
+        $dayCnt = 0;
+
+        $now = CarbonImmutable::now();
+
+        for ($i = 0; $i <= 5; $i++) {
+            $preDate = $now->subMonth($i);
+            $monthlyData = $this->calculateMonthTime($preDate);
+
+            $monthlyTrend[] = [
+                'month' => $monthlyData['month'],
+                'work_minutes' => $monthlyData['work_minutes'],
+                'overtime_minutes' => $monthlyData['overtime_minutes'],
+            ];
+
+            $dayCnt = $dayCnt + $monthlyData['dayCnt'];
+        }
+
+        $summary = $this->makeSummary($monthlyTrend, $dayCnt);
+        $anomalies = $this->makeAnomalies($now);
+
+        $data['summary'] = $summary;
+        $data['monthlyTrend'] = $monthlyTrend;
+        $data['anomalies'] = $anomalies;
+
+        return $data;
+    }
+
+    /**
+     * 月毎の勤怠データを配列にして返す
+     *
+     * @param  CarbonImmutable  $date  対象月の日付
+     * @return array $data 対象月、勤務時間、残業時間、出勤日数の配列
+     */
+    public function calculateMonthTime(CarbonImmutable $date): array
+    {
+        $data = [];
+        $monthlyTrend = [];
+        $dayCnt = 0;
+        $monthTotal = 0;
+        $monthLongWork = 0;
+        $longWorkCnt = 0;
+
+        $attendanceRrecords = AttendanceRecord::getMonthUserData($date);
+
+        foreach ($attendanceRrecords as $attendanceRecord) {
+            $longWorkCnt = 0;
+            $longWorkCnt = 0;
+
+            if ($attendanceRecord->ClockRecord->clock_in) {
+                $dayCnt++;
+                $wData = $this->calculateWorkTime($attendanceRecord);
+                $breakSum = $this->calculateBreakTime($attendanceRecord);
+                $totalTime = $this->calculateTotalTime($breakSum, $wData['workSum']);
+
+                if ($totalTime > 480) {
+                    $longWorkCnt = $totalTime - 480;
+                }
+                $monthTotal = $monthTotal + $totalTime;
+                $monthLongWork = $monthLongWork + $longWorkCnt;
+            }
+        }
+
+        $data = [
+            'month' => $date->format('Y-m'),
+            'work_minutes' => $monthTotal,
+            'overtime_minutes' => $monthLongWork,
+            'dayCnt' => $dayCnt,
+        ];
+
+        return $data;
+    }
+
+    /**
+     * 対象期間の勤務時間、残業時間を計算し、平均勤務時間を計算する
+     *
+     * @param  array  $monthlyTrend  対象期間の勤務時間、残業時間を格納した配列
+     * @param  int  $dayCnt  対象期間の勤務日数
+     * @param  array  $summary  対象期間の勤務時間合計、残業時間合計、平均勤務時間を格納した配列
+     */
+    public function makeSummary(array $monthlyTrend, int $dayCnt): array
+    {
+        $summary = [];
+        $totalWorkMinutes = 0;
+        $overTimeMimnutes = 0;
+        $avg = 0;
+
+        if ($dayCnt > 0) {
+            foreach ($monthlyTrend as $val) {
+                $totalWorkMinutes = $totalWorkMinutes + $val['work_minutes'];
+                $overTimeMimnutes = $overTimeMimnutes + $val['overtime_minutes'];
+            }
+            $avg = (int) floor($totalWorkMinutes / $dayCnt);
+        }
+
+        $summary['total_work_minutes'] = $totalWorkMinutes;
+        $summary['total_overtime_minutes'] = $overTimeMimnutes;
+        $summary['avg_work_minutes'] = $avg;
+
+        return $summary;
+    }
+
+    /**
+     * 月の遅刻回数、早退回数、長時間労働日数を計算する
+     *
+     * @param  CarbonImmutable  $date  対象月の日付
+     * @param  array  $data  対象月の遅刻回数、早退回数、長時間労働日数を格納した配列
+     */
+    public function makeAnomalies(CarbonImmutable $date): array
+    {
+        $anomalies = [];
+        $earlyReaveCnt = 0;
+        $lateCnt = 0;
+        $longWCnt = 0;
+
+        $attendanceRecords = AttendanceRecord::getMonthUserData($date);
+        foreach ($attendanceRecords as $attendanceRecord) {
+            $formatIn = TimeFormat($attendanceRecord->clockRecord->clock_in);
+            $formatOut = TimeFormat($attendanceRecord->clockRecord->clock_out);
+            if ($formatIn && $formatIn->gt(TimeFormat('09:00:00'))) {
+                $lateCnt++;
+            }
+            if ($formatOut && $formatOut->lt(TimeFormat('18:00:00'))) {
+                $earlyReaveCnt++;
+            }
+            $data = $this->calculateWorkTime($attendanceRecord);
+            $breakSum = $this->calculateBreakTime($attendanceRecord);
+            $totalTime = $this->calculateTotalTime($breakSum, $data['workSum']);
+            if ($totalTime > 600) {
+                $longWCnt++;
+            }
+        }
+
+        $anomalies['late_count'] = $lateCnt;
+        $anomalies['early_leave_count'] = $earlyReaveCnt;
+        $anomalies['long_work_count'] = $longWCnt;
+
+        return $anomalies;
+    }
 }

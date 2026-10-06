@@ -124,4 +124,21 @@ class AttendanceController extends Controller
 
         return Redirect('/attendance/detail/' . $attendanceRecord->id);
     }
+
+    /**
+     * マイ勤怠レポート画面
+     *
+     * @return View マイ勤怠レポート画面
+     */
+    public function report(): View
+    {
+        $data = [];
+        $data = $this->attendanceService->makeReportData();
+
+        $summary = $data['summary'];
+        $monthlyTrend = $data['monthlyTrend'];
+        $anomalies = $data['anomalies'];
+
+        return view('reports.index', compact('summary', 'monthlyTrend', 'anomalies'));
+    }
 }
