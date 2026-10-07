@@ -339,7 +339,10 @@ class AttendanceService
 
         DB::connection()->transaction(function () use ($attendanceRecord, $data, $breakArr) {
             $this->saveBreakRecords($attendanceRecord, $breakArr);
-            $attendanceRecord->clockRecord->update($data);
+            $attendanceRecord->clockRecord()->updateOrCreate(
+                ['clock_in' => $data['clock_in']],
+                ['clock_out' => $data['clock_out']],
+            );
             $attendanceRecord->save();
         });
     }

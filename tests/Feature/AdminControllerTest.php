@@ -367,25 +367,60 @@ class AdminControllerTest extends TestCase
     }
 
     /** @test */
-    public function 管理者ユーザーが全ユーザーの「氏名」「メールアドレス」を確認できる()
+    public function 管理者の勤怠詳細画面から直接データの修正ができる()
+    {
+        $user = User::factory()->create();
+        $admin = User::factory()->create(['admin_status' => 1]);
+
+        $attendanceRecord = AttendanceRecord::factory()->create([
+            'user_id' => $user->id,
+            'date' => CarbonImmutable::now()->format('Y-m-d'),
+        ]);
+
+        $response = $this->actingAs($admin)->post('/admin/attendance/' . $attendanceRecord->id, [
+            'new_clock_in' => '09:00:00',
+            'new_clock_out' => '18:00:00',
+            'new_break_in' => ['12:00:00'],
+            'new_break_out' => ['13:00:00'],
+            'comment' => '修正',
+        ]);
+
+        $this->assertDatabaseHas('clock_records', [
+            'attendance_record_id' => $attendanceRecord->id,
+            'clock_in' => '09:00:00',
+            'clock_out' => '18:00:00',
+        ]);
+
+        $this->assertDatabaseHas('break_records', [
+            'attendance_record_id' => $attendanceRecord->id,
+            'break_in' => '12:00:00',
+            'break_out' => '13:00:00',
+        ]);
+
+        $response->assertRedirect('/admin/attendance/' . $attendanceRecord->id);
+
+    }
+
+    /** @test */
+    public function 管理者ユーザーが全一般ユーザーの「氏名」「メールアドレス」を確認できる()
     {
         $gUser = User::factory()->count(3)->create();
         $admin = User::factory()->create(['admin_status' => 1]);
-        $tmpUsers = User::all();
+        $nomalUsers = User::getNomalUser()->sortByDesc('id');
 
         $response = $this->actingAs($admin)->get('/admin/staff/list');
 
         $response->assertViewIs('admin.staff-list');
         $response->assertStatus(200);
-        $response->assertViewHas('users', function ($users) use ($tmpUsers) {
+        $response->assertViewHas('users', function ($users) use ($nomalUsers) {
             $cnt = 0;
             foreach ($users as $index => $user) {
-                if ($user->name == $tmpUsers[$index]->name && $user->email == $tmpUsers[$index]->email) {
+                if ($nomalUsers->where('name', $user->name) && $nomalUsers->where('email', $user->email)) {
                     $cnt++;
                 }
             }
 
-            return $cnt == 4;
+            return $cnt == 3;
         });
     }
 
