@@ -66,6 +66,7 @@ class AttendanceUpdateRequest extends FormRequest
             }
 
             foreach ($breakIns as $key => $bI) {
+
                 $bO = $breakOuts[$key] ?? null;
 
                 if ($bI == null && $bO == null) {
@@ -81,16 +82,30 @@ class AttendanceUpdateRequest extends FormRequest
                 $bITime = CarbonImmutable::parse(mb_convert_kana($bI, 'ask'))->setSecond(0);
                 $bOTime = CarbonImmutable::parse(mb_convert_kana($bO, 'ask'))->setSecond(0);
 
-                if ($preBO && $bITime->lessThan($preBO)) {
-                    $validator->errors()->add("new_break_in.$key", '休憩は前の休憩戻りより後に開始してください');
-                }
-
                 if (($bITime->lessThan($clockInTime)) || $bITime->greaterThan($clockOutTime)) {
                     $validator->errors()->add("new_break_in.$key", '休憩時間が不適切な値です');
+
+                    continue;
+                }
+
+                if ($bITime->greaterThan($bOTime)) {
+                    $validator->errors()->add("new_break_in.$key", '休憩開始が休憩終了より後です'
+                    );
+
+                    continue;
                 }
 
                 if ($bOTime->greaterThan($clockOutTime)) {
                     $validator->errors()->add("new_break_in.$key", '休憩時間もしくは退勤時間が不適切な値です');
+
+                    continue;
+
+                }
+
+                if ($preBO && $bITime->lessThan($preBO)) {
+                    $validator->errors()->add("new_break_in.$key", '休憩は前の休憩戻りより後に開始してください');
+
+                    continue;
                 }
 
                 $preBO = $bO;

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -56,7 +57,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * 対象日付の勤怠レコードを取得
      *
-     * @return Illuminate\Database\Eloquent\Relations\HasOne
+     * @return HasOne 今日の出勤データを返す
      */
     public function todayAttendance(): HasOne
     {
@@ -65,7 +66,19 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * 一般ユーザーのみ取得
+     *
+     * @return Collection 一般ユーザーのみ取得したデータを返す
+     */
+    public static function getNomalUser(): Collection
+    {
+        return self::whereNull('admin_status')->get();
+    }
+
+    /**
      * 出退勤登録時のステータスを表示
+     *
+     * @return string 出勤中、休憩中、退勤済のステータスを返す
      */
     public function getAttendanceStatusAttribute(): string
     {

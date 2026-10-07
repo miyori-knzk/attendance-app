@@ -117,7 +117,7 @@ class AdminController extends Controller
      */
     public function staffIndex(): View
     {
-        $users = User::all();
+        $users = User::getNomalUser();
 
         return view('admin.staff-list', compact('users'));
     }
