@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Auth;
 
 use App\Http\Middleware\VerifyCsrfToken;
 use App\Models\User;
@@ -9,7 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
-class VerficationTest extends TestCase
+class VerificationTest extends TestCase
 {
     use RefreshDatabase;
 
