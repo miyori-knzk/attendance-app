@@ -126,7 +126,8 @@ Windows11上のWSL(Ubuntu)で開発しています。
     cp .env.example .env
     ```
 
-    .envファイルを開き、データベース情報が以下のようになっているか確認
+    .envファイルを開き、データベース情報が以下の部分が一致しているか確認、
+    違っていれば修正
 
     ```
     DB_CONNECTION=mysql
@@ -193,36 +194,40 @@ Windows11上のWSL(Ubuntu)で開発しています。
 
 9. **アプリケーションへのアクセス**
     - 一般ユーザー
-      ブラウザで<http://localhost/login>にアクセスしログイン
-      メールアドレス：user1@example.com
+      ブラウザで<http://localhost/login>にアクセスしログイン  
+      メールアドレス：user1@example.com  
       パスワード：password
-    - 管理者ユーザー
-      メールアドレス：user3@example.com
+    - 管理者ユーザー  
+      ブラウザで<http://localhost/login>にアクセスしログイン  
+      メールアドレス：user3@example.com  
       パスワード：password
-    - データベース
+    - データベース  
       ブラウザで<http://localhost:8080>にアクセスしphpMyAdminが表示されるか確認
 
 ## テスト
 
-1. **テスト用.envの作成**
+1.  **テスト用.envの作成**
     ```
-    cp .env.example .env.testing
+    cp .env .env.testing
     ```
-2. **.env.testingの以下の項目を修正**
+2.  **.env.testingの以下の項目を修正**
 
     ```
     APP_ENV=testing
 
-    DB_CONNECTION=sqlite
-    DB_DATABASE=testdb
+    LOG_CHANNEL=null
 
-    CACHE_DRIVER=array
+    DB_CONNECTION=sqlite
+    DB_DATABASE=:memory:
+
+    BROADCAST_DRIVER=array
     SESSION_DRIVER=array
 
     MAIL_MAILER=log
+
     ```
 
-3. **テスト実行**
+3.  **テスト実行**
     ```
     ./vendor/bin/sail test
     ```
