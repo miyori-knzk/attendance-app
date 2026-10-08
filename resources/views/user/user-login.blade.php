@@ -29,6 +29,7 @@
                 @enderror
             </div>
         </div>
+        <input type="hidden" value="user" name="role">
         <div class="form__button">
             <button class="form__button--submit">ログインする</button>
         </div>
