@@ -113,7 +113,7 @@ Windows11上のWSL(Ubuntu)で開発しています。
 1. **リポジトリをクローン**
 
     ```
-        git clone https://github.com/miyori-knzk/attendance-app.git
+    git clone https://github.com/miyori-knzk/attendance-app.git
     ```
 
 2. **.envファイルの準備**
