@@ -453,37 +453,31 @@ class AttendanceService
      */
     public function calculateMonthTime(CarbonImmutable $date): array
     {
-        $data = [];
-        $monthlyTrend = [];
-        $dayCnt = 0;
-        $monthTotal = 0;
-        $monthLongWork = 0;
-        $longWorkCnt = 0;
+        $attendanceRecords = collect(AttendanceRecord::getMonthUserData($date));
 
-        $attendanceRrecords = AttendanceRecord::getMonthUserData($date);
+        $okRecords = $attendanceRecords->filter(function ($rec) {
+            return $rec->ClockRecord && $rec->ClockRecord->clock_in;
+        });
 
-        foreach ($attendanceRrecords as $attendanceRecord) {
-            $longWorkCnt = 0;
-            $longWorkCnt = 0;
+        $calculated = $okRecords->map(function ($rec) {
+            $workSum = $this->calculateWorkTime($rec)['workSum'];
+            $break = $this->calculateBreakTime($rec);
+            $workMinutes = $this->calculateTotalTime($break, $workSum);
 
-            if ($attendanceRecord->ClockRecord->clock_in) {
-                $dayCnt++;
-                $wData = $this->calculateWorkTime($attendanceRecord);
-                $breakSum = $this->calculateBreakTime($attendanceRecord);
-                $totalTime = $this->calculateTotalTime($breakSum, $wData['workSum']);
+            return [
+                'work_minutes' => $workMinutes,
+                'overtime_minutes' => max(0, $workMinutes - 480),
+            ];
+        });
 
-                if ($totalTime > 480) {
-                    $longWorkCnt = $totalTime - 480;
-                }
-                $monthTotal = $monthTotal + $totalTime;
-                $monthLongWork = $monthLongWork + $longWorkCnt;
-            }
-        }
+        $monthTotal = $calculated->sum('work_minutes');
+        $monthOverTime = $calculated->sum('overtime_minutes');
+        $dayCnt = $okRecords->count();
 
         $data = [
             'month' => $date->format('Y-m'),
             'work_minutes' => $monthTotal,
-            'overtime_minutes' => $monthLongWork,
+            'overtime_minutes' => $monthOverTime,
             'dayCnt' => $dayCnt,
         ];
 
@@ -499,22 +493,24 @@ class AttendanceService
      */
     public function makeSummary(array $monthlyTrend, int $dayCnt): array
     {
-        $summary = [];
-        $totalWorkMinutes = 0;
-        $overTimeMimnutes = 0;
-        $avg = 0;
+        $avgWorkMinutes = 0;
+
+        $data = collect($monthlyTrend);
+
+        $filtered = $data->filter(function ($item) {
+            return isset($item['work_minutes'], $item['overtime_minutes']);
+        });
+
+        $totalWorkMinutes = $filtered->sum('work_minutes');
+        $totalOvertimeMinutes = $filtered->sum('overtime_minutes');
 
         if ($dayCnt > 0) {
-            foreach ($monthlyTrend as $val) {
-                $totalWorkMinutes = $totalWorkMinutes + $val['work_minutes'];
-                $overTimeMimnutes = $overTimeMimnutes + $val['overtime_minutes'];
-            }
-            $avg = (int) floor($totalWorkMinutes / $dayCnt);
+            $avgWorkMinutes = (int) floor($totalWorkMinutes / $dayCnt);
         }
 
         $summary['total_work_minutes'] = $totalWorkMinutes;
-        $summary['total_overtime_minutes'] = $overTimeMimnutes;
-        $summary['avg_work_minutes'] = $avg;
+        $summary['total_overtime_minutes'] = $totalOvertimeMinutes;
+        $summary['avg_work_minutes'] = $avgWorkMinutes;
 
         return $summary;
     }
@@ -527,33 +523,54 @@ class AttendanceService
      */
     public function makeAnomalies(CarbonImmutable $date): array
     {
-        $anomalies = [];
-        $earlyReaveCnt = 0;
-        $lateCnt = 0;
-        $longWCnt = 0;
+        $attendanceRecords = collect(AttendanceRecord::getMonthUserData($date));
 
-        $attendanceRecords = AttendanceRecord::getMonthUserData($date);
-        foreach ($attendanceRecords as $attendanceRecord) {
-            $formatIn = TimeFormat($attendanceRecord->clockRecord->clock_in);
-            $formatOut = TimeFormat($attendanceRecord->clockRecord->clock_out);
-            if ($formatIn && $formatIn->gt(TimeFormat('09:00:00'))) {
-                $lateCnt++;
-            }
-            if ($formatOut && $formatOut->lt(TimeFormat('18:00:00'))) {
-                $earlyReaveCnt++;
-            }
-            $data = $this->calculateWorkTime($attendanceRecord);
-            $breakSum = $this->calculateBreakTime($attendanceRecord);
-            $totalTime = $this->calculateTotalTime($breakSum, $data['workSum']);
-            if ($totalTime > 600) {
-                $longWCnt++;
-            }
-        }
+        $lateCnt = $attendanceRecords->filter(function ($rec) {
+            return $this->isLate($rec);
+        })->count();
+        $earlyLeaveCnt = $attendanceRecords->filter(function ($rec) {
+            return $this->isEarlyLeave($rec);
+        })->count();
+
+        $longWorkCnt = $attendanceRecords
+            ->map(function ($rec) {
+                return $this->calculateTotalTime(
+                    $this->calculateBreakTime($rec),
+                    $this->calculateWorkTime($rec)['workSum']
+                );
+            })
+            ->filter(function ($total) {
+                return $total > 600;
+            })->count();
 
         $anomalies['late_count'] = $lateCnt;
-        $anomalies['early_leave_count'] = $earlyReaveCnt;
-        $anomalies['long_work_count'] = $longWCnt;
+        $anomalies['early_leave_count'] = $earlyLeaveCnt;
+        $anomalies['long_work_count'] = $longWorkCnt;
 
         return $anomalies;
+    }
+
+    /**
+     * 遅刻判定
+     *
+     * @return bool 出勤時間が9時より後ならtrue
+     */
+    private function isLate(AttendanceRecord $attendanceRecord): bool
+    {
+        $in = TimeFormat($attendanceRecord->clockRecord->clock_in);
+
+        return $in && $in->gt(TimeFormat('09:00:00'));
+    }
+
+    /**
+     * 早退判定
+     *
+     * @return bool 退勤時間が18時より前ならtrue
+     */
+    private function isEarlyLeave(AttendanceRecord $attendanceRecord): bool
+    {
+        $out = TimeFormat($attendanceRecord->clockRecord->clock_out);
+
+        return $out && $out->lt(TimeFormat('18:00:00'));
     }
 }
