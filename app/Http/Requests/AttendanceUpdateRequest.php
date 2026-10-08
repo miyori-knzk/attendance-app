@@ -96,7 +96,7 @@ class AttendanceUpdateRequest extends FormRequest
                 }
 
                 if ($bOTime->greaterThan($clockOutTime)) {
-                    $validator->errors()->add("new_break_in.$key", '休憩時間もしくは退勤時間が不適切な値です');
+                    $validator->errors()->add("new_break_out.$key", '休憩時間もしくは退勤時間が不適切な値です');
 
                     continue;
 

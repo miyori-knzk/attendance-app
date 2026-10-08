@@ -18,7 +18,16 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    if (! Auth::check()) {
+        return Redirect('/login');
+    }
+
+    $user = Auth::user();
+    if ($user->admin_status == 1) {
+        return Redirect('/admin/attendance/list');
+    }
+
+    return Redirect('/attendance');
 });
 
 Route::middleware(['guest'])->group(function () {

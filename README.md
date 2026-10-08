@@ -113,7 +113,7 @@ Windows11上のWSL(Ubuntu)で開発しています。
 1. **リポジトリをクローン**
 
     ```
-        https://github.com/miyori-knzk/attendance-app.git
+        git clone https://github.com/miyori-knzk/attendance-app.git
     ```
 
 2. **.envファイルの準備**
@@ -122,7 +122,7 @@ Windows11上のWSL(Ubuntu)で開発しています。
     .env.exsampleをコピーして.envを作成
 
     ```
-    cd task-manager2
+    cd attendance-app
     cp .env.example .env
     ```
 
@@ -135,6 +135,10 @@ Windows11上のWSL(Ubuntu)で開発しています。
     DB_DATABASE=laravel
     DB_USERNAME=sail
     DB_PASSWORD=password
+
+    MAIL_MAILER=smtp
+    MAIL_HOST=mailpit
+    MAIL_PORT=1025"
     ```
 
 3. **Composer依存パッケージのインストール**
@@ -198,16 +202,45 @@ Windows11上のWSL(Ubuntu)で開発しています。
     - データベース
       ブラウザで<http://localhost:8080>にアクセスしphpMyAdminが表示されるか確認
 
-## テスト実行
+## テスト
 
-```
-./vendor/bin/sail test
-```
+1. **テスト用.envの作成**
+    ```
+    cp .env.example .env.testing
+    ```
+2. **.env.testingの以下の項目を修正**
+
+    ```
+    APP_ENV=testing
+
+    DB_CONNECTION=sqlite
+    DB_DATABASE=testdb
+
+    CACHE_DRIVER=array
+    SESSION_DRIVER=array
+
+    MAIL_MAILER=log
+    ```
+
+3. **テスト実行**
+    ```
+    ./vendor/bin/sail test
+    ```
 
 ## 機能一覧
 
-- 一般ユーザー(勤怠打刻、勤怠一覧、勤怠修正申請、ログイン、ログアウト)
-- 一般ユーザー(勤怠一覧、スタッフ一覧、勤怠修正、修正申請の承認、ログイン、ログアウト)
+- 一般ユーザー
+  ログイン・ログアウト・新規ユーザー登録
+  出退勤・休憩の入戻の打刻
+  勤怠情報の修正
+  申請過去６か月間の勤怠情報の確認と当月異常検知の確認
+- 管理者
+  　ログイン・ログアウト
+  スタッフ一覧表示
+  スタッフの勤怠情報の閲覧
+  勤怠情報の修正
+  修正申請の承認
+  勤怠のCSV出力
 
 ## APIエンドポイント一覧
 
