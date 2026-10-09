@@ -42,9 +42,11 @@ class AttendanceRecordController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(AttendanceRecord $attendanceRecord)
     {
-        //
+        $attendanceRecord->load(['user', 'clockRecord', 'breakRecords', 'attendanceCorrectRequests']);
+
+        return new AttendanceRecordResource($attendanceRecord);
     }
 
     /**
