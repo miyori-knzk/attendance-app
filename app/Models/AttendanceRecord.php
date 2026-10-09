@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\BUilder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -51,9 +51,34 @@ class AttendanceRecord extends Model
     }
 
     /**
+     * @param  $validated  IndexAttendanceRecordRequestでバリデーション済みのデータ
+     * @return Builder パラメーターの条件適用済みのBuilder
+     */
+    public static function makeQuery(array $validated): Builder
+    {
+        $query = self::query();
+
+        if (array_key_exists('user_id', $validated)) {
+            $query->where('user_id', $validated['user_id']);
+        }
+        if (array_key_exists('date', $validated)) {
+            $query->where('date', $validated['date']);
+        }
+        if (array_key_exists('month', $validated)) {
+            $formatedMonth = CarbonImmutable::parse($validated['month']);
+            $firstOfMonth = getFirstOfMonth($formatedMonth)->format('Y-m-d');
+            $endOfMonth = getEndOfMonth($formatedMonth)->format('Y-m-d');
+            $query->where('date', '>=', $firstOfMonth)
+                ->where('date', '<=', $endOfMonth);
+        }
+
+        return $query;
+    }
+
+    /**
      * 対象の日付のデータを取得
      */
-    public static function todayData(string $date): BUilder
+    public static function todayData(string $date): Builder
     {
         return self::where('date', $date);
     }

@@ -249,4 +249,7 @@ Windows11上のWSL(Ubuntu)で開発しています。
 
 ## APIエンドポイント一覧
 
-未実装
+| HTTPメソッド | URI                                           | 概要                                   |
+| ------------ | --------------------------------------------- | -------------------------------------- |
+| GET          | /api/v1/attendance-records                    | 勤怠一覧（検索・ページネーション付き） |
+| GET          | /api/v1/attendance-records/{attendanceRecord} | 勤怠詳細                               |
