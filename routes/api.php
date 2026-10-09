@@ -21,4 +21,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::prefix('v1/attendance-records')->controller(AttendanceRecordController::class)->group(function () {
     Route::get('', 'index');
+    Route::get('{attendanceRecord}', 'show');
+
 });

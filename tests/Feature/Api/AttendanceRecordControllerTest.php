@@ -67,7 +67,7 @@ class AttendanceRecordControllerTest extends TestCase
         }
 
         $dataCnt = AttendanceRecord::all()->count();
-        $response = $this->get('/api/v1/attendance-records');
+        $response = $this->getJson('/api/v1/attendance-records');
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
@@ -81,6 +81,60 @@ class AttendanceRecordControllerTest extends TestCase
         ]);
         $response->assertJsonFragment([
             'total' => $dataCnt,
+        ]);
+    }
+
+    /** @test */
+    public function 勤怠詳細が_jso_nで取得できる(): void
+    {
+        $user = User::factory()->create();
+
+        $attendanceRecord = AttendanceRecord::factory()->create([
+            'user_id' => $user->id,
+            'date' => date('Y-m-d'),
+            'comment' => 'JsonTest',
+        ]);
+
+        $attendanceRecord->clockRecord()->create([
+            'clock_in' => '09:00:00',
+            'clock_out' => '18:00:00',
+        ]);
+
+        $attendanceRecord->breakRecords()->create([
+            'break_in' => '12:00:00',
+            'break_out' => '12:45:00',
+        ]);
+
+        $response = $this->getJson('/api/v1/attendance-records/' . $attendanceRecord->id);
+        $response->assertStatus(200);
+        $response->assertJsonFragment([
+            'id' => $attendanceRecord->id,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+            ],
+            'date' => $attendanceRecord->date,
+            'clock_in' => '09:00',
+            'clock_out' => '18:00',
+            'breaks' => [
+                [
+                    'break_in' => '12:00',
+                    'break_out' => '12:45',
+                ],
+
+            ],
+            'comment' => $attendanceRecord->comment,
+        ]);
+    }
+
+    /** @test */
+    public function 存在しない_i_dでは404とエラー_jso_nが返る()
+    {
+        $response = $this->getJson('/api/v1/attendance-records/9999');
+
+        $response->assertStatus(404);
+        $response->assertExactJson([
+            'error' => '勤怠情報が見つかりませんでした。',
         ]);
     }
 }

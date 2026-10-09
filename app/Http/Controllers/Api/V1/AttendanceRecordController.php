@@ -7,6 +7,7 @@ use App\Http\Requests\Api\V1\IndexAttendanceRecordRequest;
 use App\Http\Resources\AttendanceRecordResource;
 use App\Models\AttendanceRecord;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class AttendanceRecordController extends Controller
 {
@@ -14,9 +15,9 @@ class AttendanceRecordController extends Controller
      * 勤怠一覧API
      *
      * @param  IndexAttendanceRecordRequest  $request  バリデーション済みのリクエスト
-     * @return ResourceCollection data,links,meta を付与して返す
+     * @return AnonymousResourceCollection data,links,meta を付与して返す
      */
-    public function index(IndexAttendanceRecordRequest $request)
+    public function index(IndexAttendanceRecordRequest $request): AnonymousResourceCollection
     {
         $perPage = 20;
         $validated = $request->validated();
@@ -40,11 +41,14 @@ class AttendanceRecordController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * @param  AttendanceRecord  $attendanceRecord  ルーとモデルバインディングでAttendanceRecordを取得
+     * @return AttendanceRecordResource 特定の勤怠データのみ返す
      */
-    public function show(string $id)
+    public function show(AttendanceRecord $attendanceRecord): AttendanceRecordResource
     {
-        //
+        $attendanceRecord->load(['user', 'clockRecord', 'breakRecords', 'attendanceCorrectRequests']);
+
+        return new AttendanceRecordResource($attendanceRecord);
     }
 
     /**
