@@ -21,7 +21,7 @@ class AttendanceRecordFactory extends Factory
         return [
             'user_id' => User::factory(),
             'date' => $this->faker->date(),
-            'comment' => $this->faker->text(255),
+            'comment' => $this->faker->realText(255),
         ];
     }
 }
