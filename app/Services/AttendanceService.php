@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Http\Requests\Api\V1\StoreAttendanceRecordRequest;
 use App\Http\Requests\AttendanceUpdateRequest;
 use App\Models\AttendanceRecord;
 use App\Models\BreakRecord;
@@ -572,5 +573,29 @@ class AttendanceService
         $out = TimeFormat($attendanceRecord->clockRecord->clock_out);
 
         return $out && $out->lt(TimeFormat('18:00:00'));
+    }
+
+    /**
+     * APIでの勤怠登録処理
+     *
+     * @param  StoreAttendanceRecordRequest  $request  バリデーション済みデータ
+     * @return AttendanceRecord 登録処理したAttendanceRecordインスタンスを返す
+     */
+    public function apiStore(StoreAttendanceRecordRequest $request): AttendanceRecord
+    {
+        $validated = $request->validated();
+        $user = $request->user();
+        $date = dateFormat($validated['date'])->startOfDay();
+
+        $startDay = $this->getStartDay($user);
+        $attendanceRecord = DB::connection()->transaction(function () use ($startDay, $date, $validated, $user) {
+            $this->createOnlyAttendanceRecode($startDay, $date, $user);
+            $attendanceRecord = $user->attendanceRecords()->create($validated);
+            $attendanceRecord->clockRecord()->create($validated);
+
+            return $attendanceRecord;
+        });
+
+        return $attendanceRecord;
     }
 }

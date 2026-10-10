@@ -4,13 +4,25 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\IndexAttendanceRecordRequest;
+use App\Http\Requests\Api\V1\StoreAttendanceRecordRequest;
 use App\Http\Resources\AttendanceRecordResource;
 use App\Models\AttendanceRecord;
-use Illuminate\Http\Request;
+use App\Services\AttendanceService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class AttendanceRecordController extends Controller
 {
+    private AttendanceService $attendanceService;
+
+    /**
+     * AttendanceController constructor
+     */
+    public function __construct(AttendanceService $attendanceService)
+    {
+        $this->attendanceService = $attendanceService;
+    }
+
     /**
      * 勤怠一覧API
      *
@@ -33,11 +45,14 @@ class AttendanceRecordController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * @param  StoreAttendanceRecordRequest  $request  バリデーション済みデータ
+     * @return AttendanceRecordResource 特定の勤怠データのみ返す
      */
-    public function store(Request $request)
+    public function store(StoreAttendanceRecordRequest $request): JsonResponse
     {
-        //
+        $attendanceRecord = $this->attendanceService->apiStore($request);
+
+        return (new AttendanceRecordResource($attendanceRecord))->response()->setStatusCode(201);
     }
 
     /**
@@ -52,11 +67,13 @@ class AttendanceRecordController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * 指定IDの勤怠を更新
+     *
+     * @param  AttendanceRecord  $attendanceRecord  ルーとモデルバインディングでAttendanceRecordを取得
      */
-    public function update(Request $request, string $id)
+    public function update(AttendanceRecord $attendanceRecord): AttendanceRecord
     {
-        //
+        $this->authorize('update', $attendanceRecord);
     }
 
     /**
