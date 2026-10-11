@@ -11,6 +11,9 @@
 
 - **言語**: PHP 8.5.9
 - **フレームワーク**: Laravel Framework 10.50.3
+- **認証**
+    - Fortify
+    - Sanctum(API)
 - **データベース**: MySQL 8.4.11
 - **データベース管理ツール**: phpMyadmin 5.2.3
 - **ビルドツール**: Vite 5.4.21
