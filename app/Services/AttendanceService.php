@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Http\Requests\Api\V1\StoreAttendanceRecordRequest;
+use App\Http\Requests\Api\V1\UpdateAttendanceRecordRequest;
 use App\Http\Requests\AttendanceUpdateRequest;
 use App\Models\AttendanceRecord;
 use App\Models\BreakRecord;
@@ -592,6 +593,28 @@ class AttendanceService
             $this->createOnlyAttendanceRecode($startDay, $date, $user);
             $attendanceRecord = $user->attendanceRecords()->create($validated);
             $attendanceRecord->clockRecord()->create($validated);
+
+            return $attendanceRecord;
+        });
+
+        return $attendanceRecord;
+    }
+
+    /**
+     * APIでの更新処理
+     *
+     * @param  StoreAttendanceRecordRequest  $request  バリデーション済みデータ
+     * @param  AttendanceRecord  $attendanceRecord  ルーとモデルバインディングで取得
+     */
+    public function apiUpdate(UpdateAttendanceRecordRequest $request, AttendanceRecord $attendanceRecord): AttendanceRecord
+    {
+        $validated = $request->validated();
+        $attendanceRecord = DB::connection()->transaction(function () use ($attendanceRecord, $validated) {
+            $attendanceRecord->update($validated);
+            $attendanceRecord->clockRecord()->updateOrCreate(
+                ['clock_in' => $validated['clock_in']],
+                ['clock_out' => $validated['clock_out']],
+            );
 
             return $attendanceRecord;
         });
