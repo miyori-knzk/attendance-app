@@ -17,8 +17,8 @@ class ApplicationResource extends JsonResource
         return [
             'id' => $this->id,
             'status' => $this->approval_status,
-            'new_clock_in' => hisToHi($this->new_clock_in),
-            'new_clock_out' => hisToHi($this->new_clock_out),
+            'new_clock_in' => $this->new_clock_in,
+            'new_clock_out' => $this->new_clock_out,
             'new_breaks' => BreakCorrectRequestResource::collection($this->breakCorrectRequests),
             'comment' => $this->comment,
         ];

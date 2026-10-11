@@ -33,8 +33,8 @@ class AttendanceRecordResource extends JsonResource
         });
 
         $data['date'] = $this->date;
-        $data['clock_in'] = hisToHi($this->clockRecord->clock_in);
-        $data['clock_out'] = hisToHi($this->clockRecord->clock_out);
+        $data['clock_in'] = $this->clockRecord->clock_in;
+        $data['clock_out'] = $this->clockRecord->clock_out;
 
         $data['breaks'] = $this->whenLoaded('breakRecords', function () {
             return BreakRecordResource::collection($this->breakRecords);

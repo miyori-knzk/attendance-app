@@ -15,8 +15,8 @@ class BreakCorrectRequestResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'new_break_in' => hisToHi($this->new_break_in),
-            'new_break_out' => hisToHi($this->new_break_out),
+            'new_break_in' => $this->new_break_in,
+            'new_break_out' => $this->new_break_out,
         ];
     }
 }

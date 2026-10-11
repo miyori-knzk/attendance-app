@@ -35,7 +35,7 @@ class AttendanceRecordPolicy
     public function update(User $user, AttendanceRecord $attendanceRecord): bool|Response
     {
         if ($user->id !== $attendanceRecord->user_id) {
-            return $this->deny('この操作を実行する権限がありません');
+            return $this->deny('この操作を実行する権限がありません。');
         }
 
         return true;
@@ -47,7 +47,7 @@ class AttendanceRecordPolicy
     public function delete(User $user, AttendanceRecord $attendanceRecord): bool|Response
     {
         if ($user->id !== $attendanceRecord->user_id) {
-            return $this->deny('この操作を実行する権限がありません');
+            return $this->deny('この操作を実行する権限がありません。');
         }
 
         return true;

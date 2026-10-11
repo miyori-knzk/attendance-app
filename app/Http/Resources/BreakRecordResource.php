@@ -15,8 +15,8 @@ class BreakRecordResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'break_in' => hisToHi($this->break_in),
-            'break_out' => hisToHi($this->break_out),
+            'break_in' => $this->break_in,
+            'break_out' => $this->break_out,
         ];
     }
 }
