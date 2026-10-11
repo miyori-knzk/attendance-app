@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('login', [AuthController::class, 'login'])->name('api.login');
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('v1/attendance-records', [AttendanceRecordController::class, 'store']);
+    Route::post('v1/attendance-records/{attendanceRecord}', [AttendanceRecordController::class, 'update']);
+    Route::delete('v1/attendance-records/{attendanceRecord}', [AttendanceRecordController::class, 'destroy']);
     Route::post('logout', [AuthController::class, 'logout'])->name('api.logout');
 });
 
