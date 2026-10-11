@@ -240,7 +240,7 @@ Windows11上のWSL(Ubuntu)で開発しています。
   勤怠情報の修正  
   申請過去６か月間の勤怠情報の確認と当月異常検知の確認
 - 管理者  
-  　ログイン・ログアウト  
+  ログイン・ログアウト  
   スタッフ一覧表示  
   スタッフの勤怠情報の閲覧  
   勤怠情報の修正  
@@ -249,7 +249,14 @@ Windows11上のWSL(Ubuntu)で開発しています。
 
 ## APIエンドポイント一覧
 
-| HTTPメソッド | URI                                           | 概要                                   |
-| ------------ | --------------------------------------------- | -------------------------------------- |
-| GET          | /api/v1/attendance-records                    | 勤怠一覧（検索・ページネーション付き） |
-| GET          | /api/v1/attendance-records/{attendanceRecord} | 勤怠詳細                               |
+**Sanctum認証必須のものについては、/api/login でトークンを取得し、AuthorizationヘッダーにBearer <トークン>を付与してアクセスしてください**
+
+| HTTPメソッド | URI                                           | コントローラー                    | アクション | 概要                                                             |
+| ------------ | --------------------------------------------- | --------------------------------- | ---------- | ---------------------------------------------------------------- |
+| GET          | /api/v1/attendance-records                    | Api\V1\AttendanceRecordController | index      | 勤怠一覧（検索・ページネーション付き）                           |
+| POST         | /api/v1/attendance-records                    | Api\V1\AttendanceRecordController | store      | 勤怠登録（Sanctum認証必須）                                      |
+| GET          | /api/v1/attendance-records/{attendanceRecord} | Api\V1\AttendanceRecordController | show       | 勤怠詳細                                                         |
+| POST         | /api/v1/attendance-records/{attendanceRecord} | Api\V1\AttendanceRecordController | update     | 勤怠詳細（Sanctum認証必須）                                      |
+| DELETE       | /api/v1/attendance-records/{attendanceRecord} | Api\V1\AttendanceRecordController | destroy    | 勤怠削除（Sanctum認証必須）                                      |
+| POST         | /api/login                                    | Api\AuthController                | login      | APIログイン 例）body:{"`email:test@test.com`, password:testtest} |
+| POST         | /api/logout                                   | Api\AuthController                | logout     | APIログアウト(トークンが不要になった場合はログアウト)            |
