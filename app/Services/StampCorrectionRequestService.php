@@ -59,10 +59,12 @@ class StampCorrectionRequestService
      */
     public function updateClockRecord(AttendanceRecord $attendance, AttendanceCorrectRequest $application): void
     {
-        $attendance->clockRecord()->updateOrCreate([
-            'clock_in' => $application->new_clock_in,
-            'clock_out' => $application->new_clock_out,
-        ]);
+        $attendance->clockRecord()->updateOrCreate(
+            ['attendance_record_id' => $attendance->id],
+            [
+                'clock_in' => $application->new_clock_in,
+                'clock_out' => $application->new_clock_out,
+            ]);
     }
 
     /**
